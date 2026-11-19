@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OoidUI and Swift · OoidOS</title>
-<meta name="description" content="How third-party apps for OoidOS will be written: Swift, with OoidUI on the OoidKit C API. A prototype today.">
+<meta name="description" content="Writing OoidOS apps in Swift, with OoidUI on the OoidKit C API.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="OoidOS">
 <meta property="og:title" content="OoidUI and Swift · OoidOS">
-<meta property="og:description" content="How third-party apps for OoidOS will be written: Swift, with OoidUI on the OoidKit C API. A prototype today.">
+<meta property="og:description" content="Writing OoidOS apps in Swift, with OoidUI on the OoidKit C API.">
 <meta property="og:url" content="https://ooidget.org/os/docs/ooidui">
 <meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#17140f" media="(prefers-color-scheme: dark)">
@@ -139,12 +139,12 @@
     <article class="doc min-w-0 max-w-[780px]">
       <p class="mb-4 flex items-center gap-2.5 text-[13.5px] text-muted-foreground"><a href="/docs" class="text-muted-foreground no-underline">Docs</a></p>
       <h1 id="ooidui-and-swift">OoidUI and Swift</h1><div class="note">
-<p><strong>Status: a prototype.</strong> The decision is made, the code is not ready to build on yet. This page will grow into a guide
-as OoidUI reaches its first version.</p>
+<p><strong>Status: early.</strong> OoidUI isn’t ready to build on yet. This page will grow into a guide as it reaches its first
+version.</p>
 </div>
 <p>OoidOS’s own apps are written in C++ against the desktop’s Ooidget kit. <strong>Third-party apps can also be written in Swift,
 with OoidUI</strong>: a layer in the manner of SwiftUI, where a view is a value and the screen is updated by fine-grained
-signals when the state a view reads changes. That was decided on 2026-11-19, after a two-week prototype.</p>
+signals when the state a view reads changes.</p>
 <h2 id="how-it-fits-together">How it fits together</h2>
 <ul>
 <li><strong>OoidKit</strong> is the desktop kit as a C API, <code>libooidkit.so</code>. An app gives it a tree of nodes (stacks, text, buttons,
@@ -157,16 +157,15 @@ own to keep up beyond the package.</li>
 <li><strong>The Swift runtime ships once</strong>, as a framework every app links to (about 8.5 MB), so an app bundle carries only the
 app.</li>
 </ul>
-<h2 id="what-the-prototype-showed">What the prototype showed</h2>
-<p>The same sample app, Notes, was written three ways on the same host, and measured with the same harness:</p>
-<div class="typeset-scroll"><table><thead><tr><th></th><th>Swift with OoidUI</th><th>Gossamer</th><th>C++ (reference)</th></tr></thead><tbody>
-<tr><td>Lines</td><td>185</td><td>184</td><td>271</td></tr>
-<tr><td>App time per keystroke</td><td>0.9 ms</td><td>0.91 ms</td><td>8 to 98 ms</td></tr>
-<tr><td>Memory at rest</td><td>71 MB</td><td>76 MB</td><td>61 MB</td></tr>
+<h2 id="how-it-performs">How it performs</h2>
+<p>The sample app, Notes, written in Swift with OoidUI and in C++, measured the same way:</p>
+<div class="typeset-scroll"><table><thead><tr><th></th><th>Swift with OoidUI</th><th>C++</th></tr></thead><tbody>
+<tr><td>Lines</td><td>185</td><td>271</td></tr>
+<tr><td>App time per keystroke</td><td>0.9 ms</td><td>8 to 98 ms</td></tr>
+<tr><td>Memory at rest</td><td>71 MB</td><td>61 MB</td></tr>
 </tbody></table>
 </div>
-<p>Swift does SwiftUI’s surface by itself, where Gossamer needed a flavour of the language and a tool of ours to get
-there. <strong>Gossamer stays an experiment</strong> on the same C API, to look at again when it reaches 1.0.</p>
+<p>Because OoidUI updates only what a change touches, a keystroke costs the app under a millisecond.</p>
 <h2 id="what-comes-next">What comes next</h2>
 <ol>
 <li><strong>OoidKit first</strong>, as every language shares it: its API frozen as version 1, its host moved into the desktop’s
@@ -189,7 +188,7 @@ images, several windows, drag and drop and translations.</li>
     </article>
     <aside aria-label="On this page" class="toc sticky top-21 hidden self-start text-[13.5px] min-[1180px]:block">
     <p class="mb-2 text-[11.5px] font-semibold uppercase tracking-wider text-muted-foreground">On this page</p>
-    <ul class="m-0 list-none p-0"><li><a href="#how-it-fits-together" data-toc="how-it-fits-together" class="block border-l-2 border-border py-[3px] leading-snug text-muted-foreground no-underline hover:text-foreground aria-[current]:border-[var(--amber)] aria-[current]:text-foreground pl-2.5">How it fits together</a></li><li><a href="#what-the-prototype-showed" data-toc="what-the-prototype-showed" class="block border-l-2 border-border py-[3px] leading-snug text-muted-foreground no-underline hover:text-foreground aria-[current]:border-[var(--amber)] aria-[current]:text-foreground pl-2.5">What the prototype showed</a></li><li><a href="#what-comes-next" data-toc="what-comes-next" class="block border-l-2 border-border py-[3px] leading-snug text-muted-foreground no-underline hover:text-foreground aria-[current]:border-[var(--amber)] aria-[current]:text-foreground pl-2.5">What comes next</a></li></ul>
+    <ul class="m-0 list-none p-0"><li><a href="#how-it-fits-together" data-toc="how-it-fits-together" class="block border-l-2 border-border py-[3px] leading-snug text-muted-foreground no-underline hover:text-foreground aria-[current]:border-[var(--amber)] aria-[current]:text-foreground pl-2.5">How it fits together</a></li><li><a href="#how-it-performs" data-toc="how-it-performs" class="block border-l-2 border-border py-[3px] leading-snug text-muted-foreground no-underline hover:text-foreground aria-[current]:border-[var(--amber)] aria-[current]:text-foreground pl-2.5">How it performs</a></li><li><a href="#what-comes-next" data-toc="what-comes-next" class="block border-l-2 border-border py-[3px] leading-snug text-muted-foreground no-underline hover:text-foreground aria-[current]:border-[var(--amber)] aria-[current]:text-foreground pl-2.5">What comes next</a></li></ul>
   </aside>
   </div></main>
   <footer class="site-footer">
