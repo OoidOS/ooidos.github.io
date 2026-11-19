@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keyboard shortcuts and gestures · OoidOS</title>
+<meta name="description" content="The desktop's keyboard shortcuts and trackpad gestures.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OoidOS">
+<meta property="og:title" content="Keyboard shortcuts and gestures · OoidOS">
+<meta property="og:description" content="The desktop's keyboard shortcuts and trackpad gestures.">
+<meta property="og:url" content="https://ooidget.org/os/docs/keyboard-shortcuts">
+<meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17140f" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/favicon.svg?v=209nauxifp" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/_/tw.css">
+<link rel="stylesheet" href="/_/theme.css">
+<link rel="stylesheet" href="/site.css?v=1bj8urkq1n">
+<script>
+  // Dark first: dark unless the reader chose light (the header's button); set before the first paint. The key is
+  // ooidget.org's: the two sites share an origin, so a choice made on one holds on the other.
+  let chosen = null;
+  try { chosen = localStorage.getItem("ooidget.theme"); } catch {}
+  document.documentElement.dataset.theme = chosen === "light" ? "light" : "dark";
+  document.addEventListener("click", (e) => {
+    const button = e.target.closest?.(".theme-toggle");
+    if (!button) return;
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    button.setAttribute("aria-pressed", String(!dark));
+    try { localStorage.setItem("ooidget.theme", root.dataset.theme); } catch {}
+  });
+  // "On this page": the section being read is marked as the page scrolls.
+  const markToc = () => {
+    const links = [...document.querySelectorAll(".toc a[data-toc]")];
+    let on = null;
+    for (const a of links) {
+      const t = document.getElementById(a.dataset.toc);
+      if (t && (!on || t.getBoundingClientRect().top < 140)) on = a;
+    }
+    for (const a of links) a.toggleAttribute("aria-current", a === on);
+  };
+  document.addEventListener("scroll", markToc, { passive: true, capture: true });
+  // A copy button on every code block, and a link (§) on every heading with an id.
+  const COPY = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+  const DONE = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  const decorate = () => {
+    const toggle = document.querySelector(".theme-toggle");
+    if (toggle) {
+      const root = document.documentElement;
+      const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      toggle.setAttribute("aria-pressed", String(dark));
+    }
+    // The contents sidebar is always open beside the page, and folded above it on a phone.
+    for (const d of document.querySelectorAll(".side-fold:not([data-set])")) {
+      d.setAttribute("data-set", "");
+      d.open = matchMedia("(min-width: 861px)").matches;
+    }
+    for (const pre of document.querySelectorAll(".doc pre:not([data-copy])")) {
+      pre.setAttribute("data-copy", "");
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "code-copy"; b.setAttribute("aria-label", "Copy code"); b.innerHTML = COPY;
+      b.onclick = async () => {
+        try { await navigator.clipboard.writeText(pre.innerText.trimEnd()); } catch { return; }
+        b.innerHTML = DONE; setTimeout(() => (b.innerHTML = COPY), 1500);
+      };
+      // The block scrolls inside a frame 20 lines tall, both ways; the copy button stays in the frame's corner.
+      const box = document.createElement("div"); box.className = "code-box";
+      const scroll = document.createElement("div"); scroll.className = "code-scroll";
+      // A frame that scrolls is reachable by the keyboard, so it can be scrolled without a pointer.
+      scroll.tabIndex = 0; scroll.setAttribute("role", "region"); scroll.setAttribute("aria-label", "Code");
+      pre.replaceWith(box); scroll.append(pre); box.append(scroll, b);
+      const lines = pre.textContent.replace(/\n$/, "").split("\n").length;
+      if (lines > 2) {
+        const g = document.createElement("div");
+        g.className = "code-lines"; g.setAttribute("aria-hidden", "true");
+        g.textContent = Array.from({ length: lines }, (_, i) => i + 1).join("\n");
+        box.classList.add("numbered"); scroll.prepend(g);
+      }
+    }
+    for (const h of document.querySelectorAll(".doc :is(h2,h3,h4)[id]:not([data-anchor])")) {
+      h.setAttribute("data-anchor", "");
+      const a = document.createElement("a");
+      a.href = "#" + h.id; a.className = "anchor"; a.setAttribute("aria-label", "Link to this section"); a.textContent = "§";
+      h.append(a);
+    }
+    markToc();
+  };
+  document.addEventListener("DOMContentLoaded", decorate);
+  new MutationObserver(decorate).observe(document.documentElement, { childList: true, subtree: true });
+</script>
+<meta name="sluurp-static"></head>
+<body class="bg-background text-foreground text-base leading-relaxed">
+  <a href="#main" class="fixed left-3 -top-12 z-50 rounded-md bg-primary px-3.5 py-2 text-primary-foreground no-underline focus:top-3">Skip to content</a>
+  <header class="site-header">
+    <div class="container bar">
+      <a href="/" class="brand-mark"><img src="/assets/ooidget.svg?v=209nauxifp" alt="" width="28" height="28">OoidOS</a>
+      <nav aria-label="Site" class="site-nav">
+        <a href="/docs" class="" aria-current="page">Docs</a><a href="/screenshots" class="nav-wide" >Screenshots</a><a href="/philosophy" class="nav-wide" >Philosophy</a><a href="/docs/roadmap" class="nav-wide" >Roadmap</a>
+        <a href="/docs/requirements" class="btn btn-primary btn-sm">Try it</a>
+        <button type="button" class="theme-toggle icon-btn" aria-label="Dark theme" aria-pressed="true">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+      </nav>
+    </div>
+    <p class="alpha-strip m-0 px-4 py-1.5 text-center text-[13px]">OoidOS is in alpha: great for exploring, not yet for your daily work. <a href="/#alpha">Back up first</a></p>
+  </header>
+  <main id="main" tabindex="-1" class="outline-none"><div class="container grid grid-cols-1 gap-5 pt-5 pb-24 min-[861px]:grid-cols-[220px_minmax(0,1fr)] min-[861px]:gap-12 min-[861px]:pt-10 min-[1180px]:grid-cols-[236px_minmax(0,1fr)_200px]">
+    <nav aria-label="Contents" class="toc-side self-start rounded-xl border border-border bg-card px-3.5 py-1 text-sm min-[861px]:sticky min-[861px]:top-21 min-[861px]:max-h-[calc(100vh-104px)] min-[861px]:overflow-y-auto min-[861px]:border-0 min-[861px]:bg-transparent min-[861px]:p-0">
+    <details class="side-fold"><summary class="cursor-pointer py-2.5 font-semibold">Contents</summary>
+    <div class="mb-4">
+      
+      <ol class="m-0 flex list-none flex-col gap-1 p-0"><li><a href="/docs" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Overview</a></li></ol>
+    </div><div class="mb-4">
+      <p class="mb-1.5 px-2.5 text-[11.5px] font-semibold uppercase tracking-wider text-muted-foreground">Getting started</p>
+      <ol class="m-0 flex list-none flex-col gap-1 p-0"><li><a href="/docs/requirements" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Requirements</a></li><li><a href="/docs/usb-stick" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Writing the USB stick</a></li><li><a href="/docs/booting" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Starting from the stick</a></li><li><a href="/docs/live-session" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >The live session</a></li><li><a href="/docs/installing" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Installing</a></li><li><a href="/docs/recovery" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Recovery</a></li></ol>
+    </div><div class="mb-4">
+      <p class="mb-1.5 px-2.5 text-[11.5px] font-semibold uppercase tracking-wider text-muted-foreground">Using OoidOS</p>
+      <ol class="m-0 flex list-none flex-col gap-1 p-0"><li><a href="/docs/files" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Files</a></li><li><a href="/docs/settings" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Settings</a></li><li><a href="/docs/panorama" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Windows, Spaces and Panorama</a></li><li><a href="/docs/keyboard-shortcuts" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" aria-current="page">Keyboard shortcuts and gestures</a></li><li><a href="/docs/accessibility" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Accessibility</a></li><li><a href="/docs/sharing" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Sharing</a></li><li><a href="/docs/firewall" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >The firewall (Gatehouse)</a></li><li><a href="/docs/backups" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Backups (Rewind)</a></li></ol>
+    </div><div class="mb-4">
+      <p class="mb-1.5 px-2.5 text-[11.5px] font-semibold uppercase tracking-wider text-muted-foreground">Apps</p>
+      <ol class="m-0 flex list-none flex-col gap-1 p-0"><li><a href="/docs/ooid-format" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >The .ooid format</a></li><li><a href="/docs/info-json" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Info.json</a></li><li><a href="/docs/store" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >The Store and Flatpak import</a></li><li><a href="/docs/ooid-cli" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >The ooid command</a></li></ol>
+    </div><div class="mb-4">
+      <p class="mb-1.5 px-2.5 text-[11.5px] font-semibold uppercase tracking-wider text-muted-foreground">For developers</p>
+      <ol class="m-0 flex list-none flex-col gap-1 p-0"><li><a href="/docs/building" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Building with osb</a></li><li><a href="/docs/repositories" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >The repositories</a></li><li><a href="/docs/ooidget-kit" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >The Ooidget kit<span class="ml-auto self-center rounded-full border border-border px-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Stub</span></a></li><li><a href="/docs/ooidui" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >OoidUI and Swift</a></li><li><a href="/docs/contributing" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Contributing<span class="ml-auto self-center rounded-full border border-border px-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Stub</span></a></li></ol>
+    </div><div class="mb-4">
+      <p class="mb-1.5 px-2.5 text-[11.5px] font-semibold uppercase tracking-wider text-muted-foreground">Reference</p>
+      <ol class="m-0 flex list-none flex-col gap-1 p-0"><li><a href="/docs/config-files" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Settings files</a></li><li><a href="/docs/commands" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Commands</a></li></ol>
+    </div><div class="mb-4">
+      <p class="mb-1.5 px-2.5 text-[11.5px] font-semibold uppercase tracking-wider text-muted-foreground">More</p>
+      <ol class="m-0 flex list-none flex-col gap-1 p-0"><li><a href="/docs/faq" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >FAQ</a></li><li><a href="/docs/roadmap" class="flex gap-2 rounded-md px-2.5 py-1 leading-snug text-muted-foreground no-underline hover:bg-muted hover:text-foreground aria-[current=page]:bg-[color-mix(in_oklab,var(--amber)_18%,transparent)] aria-[current=page]:font-semibold aria-[current=page]:text-foreground" >Roadmap</a></li></ol>
+    </div>
+    </details>
+  </nav>
+    <article class="doc min-w-0 max-w-[780px]">
+      <p class="mb-4 flex items-center gap-2.5 text-[13.5px] text-muted-foreground"><a href="/docs" class="text-muted-foreground no-underline">Docs</a></p>
+      <h1 id="keyboard-shortcuts-and-gestures">Keyboard shortcuts and gestures</h1>
+<p>OoidOS’s <strong>Command key (⌘)</strong> is the key many keyboards mark with a logo or <strong>❖</strong>, often called Super. The shortcuts in the first table can be changed or turned off in <strong>Settings › Keyboard › Keyboard Shortcuts…</strong>.</p>
+<h2 id="the-desktop-s-shortcuts">The desktop’s shortcuts</h2><div class="typeset-scroll"><table><thead><tr><th>Keys</th><th>What they do</th></tr></thead><tbody>
+<tr><td><kbd>⌘ Tab</kbd> / <kbd>⇧ ⌘ Tab</kbd></td><td>Move to the next / previous window</td></tr>
+<tr><td><kbd>⌘ W</kbd></td><td>Close the window</td></tr>
+<tr><td><kbd>⌘ M</kbd></td><td>Minimise the window</td></tr>
+<tr><td><kbd>⌘ Q</kbd></td><td>Quit the app</td></tr>
+<tr><td><kbd>⌘ H</kbd> / <kbd>⌥ ⌘ H</kbd></td><td>Hide the app / hide the others</td></tr>
+<tr><td><kbd>⌥ ⌘ Esc</kbd></td><td>Force Quit…</td></tr>
+<tr><td><kbd>⇧ ⌥ ⌘ Esc</kbd></td><td>Force the frontmost app to quit</td></tr>
+<tr><td><kbd>⇧ ⌘ /</kbd></td><td>Show the Help menu, with its search</td></tr>
+<tr><td><kbd>⌘ Return</kbd></td><td>Open Terminal</td></tr>
+<tr><td><kbd>⌘ F2</kbd> or <kbd>Ctrl F2</kbd></td><td>Move to the menu bar, to work its menus with the keyboard</td></tr>
+<tr><td><kbd>⌘ Space</kbd></td><td>Search</td></tr>
+<tr><td><kbd>Ctrl ⌘ Space</kbd></td><td>Emoji &amp; Symbols</td></tr>
+<tr><td><kbd>Ctrl Space</kbd> / <kbd>Ctrl ⌥ Space</kbd></td><td>The previous / next input source</td></tr>
+<tr><td><kbd>Ctrl ⌘ Q</kbd></td><td>Lock the screen</td></tr>
+<tr><td><kbd>⇧ ⌘ Q</kbd></td><td>Log Out…</td></tr>
+<tr><td><kbd>⌥ ⌘ 8</kbd></td><td>Zoom on or off</td></tr>
+<tr><td><kbd>⌥ ⌘ =</kbd> / <kbd>⌥ ⌘ -</kbd></td><td>Zoom in / out</td></tr>
+<tr><td><kbd>Ctrl ⌥ ⌘ 8</kbd></td><td>Invert colours</td></tr>
+<tr><td><kbd>⌘ F5</kbd></td><td>VoiceOver (the screen reader) on or off</td></tr>
+</tbody></table>
+</div><h2 id="windows-and-desktops">Windows and desktops</h2><div class="typeset-scroll"><table><thead><tr><th>Keys</th><th>What they do</th></tr></thead><tbody>
+<tr><td><kbd>Ctrl ⌥ ←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd></td><td>Tile the window to a half</td></tr>
+<tr><td><kbd>Ctrl ⌥ F</kbd> / <kbd>C</kbd> / <kbd>R</kbd></td><td>Fill, centre, return to the previous size</td></tr>
+<tr><td><kbd>Ctrl ⌘ F</kbd></td><td>Full screen</td></tr>
+<tr><td><kbd>F3</kbd> or <kbd>Ctrl ↑</kbd></td><td>Panorama</td></tr>
+<tr><td><kbd>Ctrl ↓</kbd></td><td>App Panorama</td></tr>
+<tr><td><kbd>⌘ F3</kbd></td><td>Show the desktop</td></tr>
+<tr><td><kbd>Ctrl ←</kbd> / <kbd>Ctrl →</kbd></td><td>The desktop to the left / right</td></tr>
+<tr><td><kbd>Ctrl 1</kbd> … <kbd>Ctrl 9</kbd></td><td>Desktop 1 to 9</td></tr>
+<tr><td><kbd>F4</kbd></td><td>Launchpad</td></tr>
+</tbody></table>
+</div>
+<p>Search’s panel: <kbd>↑</kbd> <kbd>↓</kbd> choose, <kbd>Return</kbd> opens, <kbd>⌘ Return</kbd> shows the item in Files,
+<kbd>⌘ C</kbd> copies its path, <kbd>Esc</kbd> closes.</p>
+<h2 id="trackpad-gestures">Trackpad gestures</h2><div class="typeset-scroll"><table><thead><tr><th>Gesture</th><th>What it does</th></tr></thead><tbody>
+<tr><td>Three fingers up</td><td>Panorama</td></tr>
+<tr><td>Three fingers down</td><td>App Panorama</td></tr>
+<tr><td>Four fingers left or right</td><td>The next desktop, following your fingers</td></tr>
+<tr><td>Thumb and three fingers together</td><td>Launchpad</td></tr>
+<tr><td>Thumb and three fingers apart</td><td>Show the desktop</td></tr>
+<tr><td>Three-finger drag</td><td>Drag without holding a click (an option in Settings › Trackpad)</td></tr>
+</tbody></table>
+</div>
+<p>Gestures the desktop does not use are passed on to apps, for pinching to zoom and the like.</p>
+
+      <nav aria-label="Previous and next" class="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <a href="/docs/panorama" class="grid gap-0.5 rounded-xl border border-border bg-card px-4.5 py-3.5 text-foreground no-underline hover:border-[var(--amber)]"><small class="text-xs text-muted-foreground">Previous</small><span>Windows, Spaces and Panorama</span></a>
+    <a href="/docs/accessibility" class="grid gap-0.5 rounded-xl border border-border bg-card px-4.5 py-3.5 text-foreground no-underline hover:border-[var(--amber)] sm:text-right"><small class="text-xs text-muted-foreground">Next</small><span>Accessibility</span></a>
+  </nav>
+    </article>
+    <aside aria-label="On this page" class="toc sticky top-21 hidden self-start text-[13.5px] min-[1180px]:block">
+    <p class="mb-2 text-[11.5px] font-semibold uppercase tracking-wider text-muted-foreground">On this page</p>
+    <ul class="m-0 list-none p-0"><li><a href="#the-desktop-s-shortcuts" data-toc="the-desktop-s-shortcuts" class="block border-l-2 border-border py-[3px] leading-snug text-muted-foreground no-underline hover:text-foreground aria-[current]:border-[var(--amber)] aria-[current]:text-foreground pl-2.5">The desktop’s shortcuts</a></li><li><a href="#windows-and-desktops" data-toc="windows-and-desktops" class="block border-l-2 border-border py-[3px] leading-snug text-muted-foreground no-underline hover:text-foreground aria-[current]:border-[var(--amber)] aria-[current]:text-foreground pl-2.5">Windows and desktops</a></li><li><a href="#trackpad-gestures" data-toc="trackpad-gestures" class="block border-l-2 border-border py-[3px] leading-snug text-muted-foreground no-underline hover:text-foreground aria-[current]:border-[var(--amber)] aria-[current]:text-foreground pl-2.5">Trackpad gestures</a></li></ul>
+  </aside>
+  </div></main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand-mark"><img src="/assets/ooidget.svg?v=209nauxifp" alt="" width="24" height="24">OoidOS</a>
+          <p>A calm, beautiful desktop, drawn by <a href="https://ooidget.org/" rel="external">Ooidget</a>.</p>
+        </div>
+        <nav class="footer-col" aria-label="Product"><h2>Product</h2><ul><li><a href="/#features" >Features</a></li><li><a href="/screenshots" >Screenshots</a></li><li><a href="/docs/roadmap" >Roadmap</a></li></ul></nav><nav class="footer-col" aria-label="Docs"><h2>Docs</h2><ul><li><a href="/docs/requirements" >Getting started</a></li><li><a href="/docs/files" >Using OoidOS</a></li><li><a href="/docs/building" >Developers</a></li></ul></nav><nav class="footer-col" aria-label="Project"><h2>Project</h2><ul><li><a href="/philosophy" >Philosophy</a></li><li><a href="/licensing" >Licensing</a></li><li><a href="https://ooidget.org/" rel="external">Ooidget</a></li></ul></nav>
+      </div>
+      <div class="footer-legal">
+        <span>OoidOS is in alpha, provided as it is.</span>
+        <span><a href="/licensing">Licensing</a></span>
+      </div>
+    </div>
+  </footer>
+<script type="module" src="/_rsc/runtime.js"></script></body>
+</html>
