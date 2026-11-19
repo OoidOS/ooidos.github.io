@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Licensing · OoidOS</title>
+<meta name="description" content="OoidOS is being prepared for an open-source release, and its licence is being chosen.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OoidOS">
+<meta property="og:title" content="Licensing · OoidOS">
+<meta property="og:description" content="OoidOS is being prepared for an open-source release, and its licence is being chosen.">
+<meta property="og:url" content="https://ooidget.org/os/licensing">
+<meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17140f" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/favicon.svg?v=209nauxifp" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/_/tw.css">
+<link rel="stylesheet" href="/_/theme.css">
+<link rel="stylesheet" href="/site.css?v=2hdj4iqigt">
+<script>
+  // Dark first: dark unless the reader chose light (the header's button); set before the first paint. The key is
+  // ooidget.org's: the two sites share an origin, so a choice made on one holds on the other.
+  let chosen = null;
+  try { chosen = localStorage.getItem("ooidget.theme"); } catch {}
+  document.documentElement.dataset.theme = chosen === "light" ? "light" : "dark";
+  document.addEventListener("click", (e) => {
+    const button = e.target.closest?.(".theme-toggle");
+    if (!button) return;
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    button.setAttribute("aria-pressed", String(!dark));
+    try { localStorage.setItem("ooidget.theme", root.dataset.theme); } catch {}
+  });
+  // "On this page": the section being read is marked as the page scrolls.
+  const markToc = () => {
+    const links = [...document.querySelectorAll(".toc a[data-toc]")];
+    let on = null;
+    for (const a of links) {
+      const t = document.getElementById(a.dataset.toc);
+      if (t && (!on || t.getBoundingClientRect().top < 140)) on = a;
+    }
+    for (const a of links) a.toggleAttribute("aria-current", a === on);
+  };
+  document.addEventListener("scroll", markToc, { passive: true, capture: true });
+  // A copy button on every code block, and a link (§) on every heading with an id.
+  const COPY = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+  const DONE = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  const decorate = () => {
+    const toggle = document.querySelector(".theme-toggle");
+    if (toggle) {
+      const root = document.documentElement;
+      const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      toggle.setAttribute("aria-pressed", String(dark));
+    }
+    // The contents sidebar is always open beside the page, and folded above it on a phone.
+    for (const d of document.querySelectorAll(".side-fold:not([data-set])")) {
+      d.setAttribute("data-set", "");
+      d.open = matchMedia("(min-width: 861px)").matches;
+    }
+    for (const pre of document.querySelectorAll(".doc pre:not([data-copy])")) {
+      pre.setAttribute("data-copy", "");
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "code-copy"; b.setAttribute("aria-label", "Copy code"); b.innerHTML = COPY;
+      b.onclick = async () => {
+        try { await navigator.clipboard.writeText(pre.innerText.trimEnd()); } catch { return; }
+        b.innerHTML = DONE; setTimeout(() => (b.innerHTML = COPY), 1500);
+      };
+      // The block scrolls inside a frame 20 lines tall, both ways; the copy button stays in the frame's corner.
+      const box = document.createElement("div"); box.className = "code-box";
+      const scroll = document.createElement("div"); scroll.className = "code-scroll";
+      // A frame that scrolls is reachable by the keyboard, so it can be scrolled without a pointer.
+      scroll.tabIndex = 0; scroll.setAttribute("role", "region"); scroll.setAttribute("aria-label", "Code");
+      pre.replaceWith(box); scroll.append(pre); box.append(scroll, b);
+      const lines = pre.textContent.replace(/\n$/, "").split("\n").length;
+      if (lines > 2) {
+        const g = document.createElement("div");
+        g.className = "code-lines"; g.setAttribute("aria-hidden", "true");
+        g.textContent = Array.from({ length: lines }, (_, i) => i + 1).join("\n");
+        box.classList.add("numbered"); scroll.prepend(g);
+      }
+    }
+    for (const h of document.querySelectorAll(".doc :is(h2,h3,h4)[id]:not([data-anchor])")) {
+      h.setAttribute("data-anchor", "");
+      const a = document.createElement("a");
+      a.href = "#" + h.id; a.className = "anchor"; a.setAttribute("aria-label", "Link to this section"); a.textContent = "§";
+      h.append(a);
+    }
+    markToc();
+  };
+  document.addEventListener("DOMContentLoaded", decorate);
+  new MutationObserver(decorate).observe(document.documentElement, { childList: true, subtree: true });
+</script>
+<meta name="sluurp-static"></head>
+<body class="bg-background text-foreground text-base leading-relaxed">
+  <a href="#main" class="fixed left-3 -top-12 z-50 rounded-md bg-primary px-3.5 py-2 text-primary-foreground no-underline focus:top-3">Skip to content</a>
+  <header class="site-header">
+    <div class="container bar">
+      <a href="/" class="brand-mark"><img src="/assets/ooidget.svg?v=209nauxifp" alt="" width="28" height="28">OoidOS</a>
+      <nav aria-label="Site" class="site-nav">
+        <a href="/docs" class="" >Docs</a><a href="/screenshots" class="nav-wide" >Screenshots</a><a href="/philosophy" class="nav-wide" >Philosophy</a><a href="/docs/roadmap" class="nav-wide" >Roadmap</a>
+        <a href="/docs/requirements" class="btn btn-primary btn-sm">Try it</a>
+        <button type="button" class="theme-toggle icon-btn" aria-label="Dark theme" aria-pressed="true">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+      </nav>
+    </div>
+    <p class="alpha-strip m-0 px-4 py-1.5 text-center text-[13px]">OoidOS is in alpha: great for exploring, not ready for your daily work yet. <a href="/docs/installing">Back up before you install</a></p>
+  </header>
+  <main id="main" tabindex="-1" class="outline-none"><div class="container">
+<header class="page-head"><span class="eyebrow">Open source</span><h1 class="section-title">Licensing</h1><p class="section-intro">OoidOS is being prepared for an open-source release, and its licence is being chosen now.</p></header>
+<div class="doc prose">
+<p>We’ll name the licence here as soon as it’s chosen.</p>
+<p>Until then, the source code and the live USB image aren’t public. The image is coming soon, and the
+<a href="/#try">home page</a> will link to it. Contributions will open together with the licence: see
+<a href="/docs/contributing">Contributing</a>.</p>
+<h2 id="what-ooidos-is-made-of">What OoidOS is made of</h2>
+<p>OoidOS is built on lots of free software: the Linux kernel, the GNU toolchain, wlroots, PipeWire, CUPS, Samba, OpenSSH
+and many more. Each one keeps its own licence. Every source is pinned, so it’s always clear which version of which
+project is inside.</p>
+<p>Some of OoidOS’s own parts already have their licences:</p>
+<div class="typeset-scroll"><table><thead><tr><th>Part</th><th>Licence</th></tr></thead><tbody>
+<tr><td>OoidOS’s alert, startup and interface sounds</td><td>CC0 1.0, public domain</td></tr>
+<tr><td>Emoji (Noto Color Emoji)</td><td>SIL Open Font License 1.1</td></tr>
+<tr><td>Icons drawn from Lucide’s shapes</td><td>ISC</td></tr>
+<tr><td>The PDF viewer, built on Poppler</td><td>GPL, as Poppler is</td></tr>
+</tbody></table>
+</div>
+<p>One Wi-Fi driver that some laptops need, Broadcom’s <code>wl</code>, isn’t free software. It’s going to become an optional
+package, offered only to computers that need it, so OoidOS itself stays free software.</p>
+<p>OoidOS is provided as is, without warranty.</p>
+</div>
+</div>
+</main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand-mark"><img src="/assets/ooidget.svg?v=209nauxifp" alt="" width="24" height="24">OoidOS</a>
+          <p>A calm, tidy desktop that's yours to control.</p>
+        </div>
+        <nav class="footer-col" aria-label="Product"><h2>Product</h2><ul><li><a href="/#features" >Features</a></li><li><a href="/screenshots" >Screenshots</a></li><li><a href="/docs/roadmap" >Roadmap</a></li></ul></nav><nav class="footer-col" aria-label="Docs"><h2>Docs</h2><ul><li><a href="/docs/requirements" >Getting started</a></li><li><a href="/docs/files" >Using OoidOS</a></li><li><a href="/docs/build-the-image" >For developers</a></li></ul></nav><nav class="footer-col" aria-label="Project"><h2>Project</h2><ul><li><a href="/philosophy" >Philosophy</a></li><li><a href="/licensing" >Licensing</a></li><li><a href="https://ooidget.org/" rel="external">Ooidget</a></li></ul></nav>
+      </div>
+      <div class="footer-legal">
+        <span>OoidOS is provided as is, without warranty.</span>
+        <span><a href="/licensing">Licensing</a></span>
+      </div>
+    </div>
+  </footer>
+<script type="module" src="/_rsc/runtime.js"></script></body>
+</html>

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OoidOS: a calm, tidy desktop that's yours to control</title>
+<meta name="description" content="OoidOS is a calm, tidy desktop for the computer you already have. Try it from a USB stick without changing a thing.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OoidOS">
+<meta property="og:title" content="OoidOS: a calm, tidy desktop that's yours to control">
+<meta property="og:description" content="OoidOS is a calm, tidy desktop for the computer you already have. Try it from a USB stick without changing a thing.">
+<meta property="og:url" content="https://ooidget.org/os/">
+<meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17140f" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/favicon.svg?v=209nauxifp" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/_/tw.css">
+<link rel="stylesheet" href="/_/theme.css">
+<link rel="stylesheet" href="/site.css?v=2hdj4iqigt">
+<script>
+  // Dark first: dark unless the reader chose light (the header's button); set before the first paint. The key is
+  // ooidget.org's: the two sites share an origin, so a choice made on one holds on the other.
+  let chosen = null;
+  try { chosen = localStorage.getItem("ooidget.theme"); } catch {}
+  document.documentElement.dataset.theme = chosen === "light" ? "light" : "dark";
+  document.addEventListener("click", (e) => {
+    const button = e.target.closest?.(".theme-toggle");
+    if (!button) return;
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    button.setAttribute("aria-pressed", String(!dark));
+    try { localStorage.setItem("ooidget.theme", root.dataset.theme); } catch {}
+  });
+  // "On this page": the section being read is marked as the page scrolls.
+  const markToc = () => {
+    const links = [...document.querySelectorAll(".toc a[data-toc]")];
+    let on = null;
+    for (const a of links) {
+      const t = document.getElementById(a.dataset.toc);
+      if (t && (!on || t.getBoundingClientRect().top < 140)) on = a;
+    }
+    for (const a of links) a.toggleAttribute("aria-current", a === on);
+  };
+  document.addEventListener("scroll", markToc, { passive: true, capture: true });
+  // A copy button on every code block, and a link (§) on every heading with an id.
+  const COPY = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+  const DONE = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  const decorate = () => {
+    const toggle = document.querySelector(".theme-toggle");
+    if (toggle) {
+      const root = document.documentElement;
+      const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      toggle.setAttribute("aria-pressed", String(dark));
+    }
+    // The contents sidebar is always open beside the page, and folded above it on a phone.
+    for (const d of document.querySelectorAll(".side-fold:not([data-set])")) {
+      d.setAttribute("data-set", "");
+      d.open = matchMedia("(min-width: 861px)").matches;
+    }
+    for (const pre of document.querySelectorAll(".doc pre:not([data-copy])")) {
+      pre.setAttribute("data-copy", "");
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "code-copy"; b.setAttribute("aria-label", "Copy code"); b.innerHTML = COPY;
+      b.onclick = async () => {
+        try { await navigator.clipboard.writeText(pre.innerText.trimEnd()); } catch { return; }
+        b.innerHTML = DONE; setTimeout(() => (b.innerHTML = COPY), 1500);
+      };
+      // The block scrolls inside a frame 20 lines tall, both ways; the copy button stays in the frame's corner.
+      const box = document.createElement("div"); box.className = "code-box";
+      const scroll = document.createElement("div"); scroll.className = "code-scroll";
+      // A frame that scrolls is reachable by the keyboard, so it can be scrolled without a pointer.
+      scroll.tabIndex = 0; scroll.setAttribute("role", "region"); scroll.setAttribute("aria-label", "Code");
+      pre.replaceWith(box); scroll.append(pre); box.append(scroll, b);
+      const lines = pre.textContent.replace(/\n$/, "").split("\n").length;
+      if (lines > 2) {
+        const g = document.createElement("div");
+        g.className = "code-lines"; g.setAttribute("aria-hidden", "true");
+        g.textContent = Array.from({ length: lines }, (_, i) => i + 1).join("\n");
+        box.classList.add("numbered"); scroll.prepend(g);
+      }
+    }
+    for (const h of document.querySelectorAll(".doc :is(h2,h3,h4)[id]:not([data-anchor])")) {
+      h.setAttribute("data-anchor", "");
+      const a = document.createElement("a");
+      a.href = "#" + h.id; a.className = "anchor"; a.setAttribute("aria-label", "Link to this section"); a.textContent = "§";
+      h.append(a);
+    }
+    markToc();
+  };
+  document.addEventListener("DOMContentLoaded", decorate);
+  new MutationObserver(decorate).observe(document.documentElement, { childList: true, subtree: true });
+</script>
+<meta name="sluurp-static"></head>
+<body class="bg-background text-foreground text-base leading-relaxed">
+  <a href="#main" class="fixed left-3 -top-12 z-50 rounded-md bg-primary px-3.5 py-2 text-primary-foreground no-underline focus:top-3">Skip to content</a>
+  <header class="site-header">
+    <div class="container bar">
+      <a href="/" class="brand-mark"><img src="/assets/ooidget.svg?v=209nauxifp" alt="" width="28" height="28">OoidOS</a>
+      <nav aria-label="Site" class="site-nav">
+        <a href="/docs" class="" >Docs</a><a href="/screenshots" class="nav-wide" >Screenshots</a><a href="/philosophy" class="nav-wide" >Philosophy</a><a href="/docs/roadmap" class="nav-wide" >Roadmap</a>
+        <a href="/docs/requirements" class="btn btn-primary btn-sm">Try it</a>
+        <button type="button" class="theme-toggle icon-btn" aria-label="Dark theme" aria-pressed="true">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+      </nav>
+    </div>
+    <p class="alpha-strip m-0 px-4 py-1.5 text-center text-[13px]">OoidOS is in alpha: great for exploring, not ready for your daily work yet. <a href="/docs/installing">Back up before you install</a></p>
+  </header>
+  <main id="main" tabindex="-1" class="outline-none"><link rel="preload" as="image" href="/assets/shots/desktop-dark.webp?v=3j0q8043z3"/><link rel="preload" as="image" href="/assets/shots/desktop-light.webp?v=1c3ilcycoy"/><div class="container"><section class="hero" aria-labelledby="hero-title"><span class="pill"><b>Alpha</b> Free to try</span><h1 id="hero-title" class="hero-title">A calm, tidy desktop. Yours to control.</h1><p class="hero-sub">OoidOS gives the computer you already have a clean, friendly desktop that keeps your files safe and your business private.</p><div class="actions"><a href="/docs/requirements" class="btn btn-primary">Try it</a><a href="/screenshots" class="btn btn-outline">See it</a></div>        </section><figure class="frame-wrap m-0"><img class="frame only-dark" src="/assets/shots/desktop-dark.webp?v=3j0q8043z3" alt="The same OoidOS desktop in dark mode: a dark menu bar, a dark Files window on the Documents folder, and the Dock with Files, Calculator, Store and Settings, on a deep brown wallpaper." width="1600" height="1000"/><img class="frame only-light" src="/assets/shots/desktop-light.webp?v=1c3ilcycoy" alt="The OoidOS desktop on a warm sand wallpaper. The menu bar at the top shows Files, File, Edit, View, Go and Window, with search, Wi-Fi, sound, battery and the clock at the right. A Files window shows the Documents folder with Projects, Report.pdf, Holiday.jpg, Notes.txt and Archive.zip, and the Dock at the bottom holds Files, Calculator, Store and Settings." width="1600" height="1000"/></figure></div><section class="section" aria-labelledby="features"><div class="container"><div class="section-head"><span class="eyebrow">What you get</span><h2 id="features" class="section-title">Why OoidOS</h2><p class="section-intro">The things you do every day, made simple.</p></div><div class="grid-2"><div class="card"><div class="card-head"><span class="chip" aria-hidden="true">
+<svg
+  class="lucide lucide-monitor"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="20" height="14" x="2" y="3" rx="2" />
+  <line x1="8" x2="16" y1="21" y2="21" />
+  <line x1="12" x2="12" y1="17" y2="21" />
+</svg>
+</span><h3 class="card-title">Calm and tidy</h3></div><p class="card-text">A clean desktop that stays out of your way. Everything looks and works the same way, so there&#x27;s less to learn. Pick a look you like, in light or dark.</p></div><div class="card"><div class="card-head"><span class="chip" aria-hidden="true">
+<svg
+  class="lucide lucide-package"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" />
+  <path d="M12 22V12" />
+  <path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7" />
+  <path d="m7.5 4.27 9 5.15" />
+</svg>
+</span><h3 class="card-title">Apps without the fuss</h3></div><p class="card-text">Popular apps like GIMP and Krita install from the Store, free and with no account needed. To remove an app, just drag it to the Bin.</p></div><div class="card"><div class="card-head"><span class="chip" aria-hidden="true">
+<svg
+  class="lucide lucide-layout-grid"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="7" height="7" x="3" y="3" rx="1" />
+  <rect width="7" height="7" x="14" y="3" rx="1" />
+  <rect width="7" height="7" x="14" y="14" rx="1" />
+  <rect width="7" height="7" x="3" y="14" rx="1" />
+</svg>
+</span><h3 class="card-title">Windows apps, through Wine</h3></div><p class="card-text">Many Windows apps run through Wine, set up as ordinary apps you open from the Dock. Affinity works, for one. It varies from app to app, and some need extra parts the first time.<!-- --> <a href="/docs/store#apps-through-wine">How it works</a></p></div><div class="card"><div class="card-head"><span class="chip" aria-hidden="true">
+<svg
+  class="lucide lucide-download"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+  <polyline points="7 10 12 15 17 10" />
+  <line x1="12" x2="12" y1="15" y2="3" />
+</svg>
+</span><h3 class="card-title">Updates you don&#x27;t worry about</h3></div><p class="card-text">Updates install next to the system you&#x27;re using. If a new version doesn&#x27;t start properly, your computer goes back to the one that worked.</p></div><div class="card"><div class="card-head"><span class="chip" aria-hidden="true">
+<svg
+  class="lucide lucide-history"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+  <path d="M3 3v5h5" />
+  <path d="M12 7v5l4 2" />
+</svg>
+</span><h3 class="card-title">Your files, kept safe</h3></div><p class="card-text">Rewind backs up your files every hour, so you can go back to any folder as it was. If something goes really wrong, Recovery can fix or reinstall OoidOS.</p></div><div class="card"><div class="card-head"><span class="chip" aria-hidden="true">
+<svg
+  class="lucide lucide-shield"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+</svg>
+</span><h3 class="card-title">Private, and easy to share</h3></div><p class="card-text">Nothing about you is sent anywhere: no account, no tracking. Toss sends files to phones and computers nearby, and sharing your screen or folders stays off until you turn it on.</p></div></div></div></section><section class="section" aria-labelledby="look"><div class="container"><div class="section-head"><span class="eyebrow">Screenshots</span><h2 id="look" class="section-title">Take a look</h2></div><div class="gallery"><figure><a href="/screenshots"><img class="shot" src="/assets/shots/panorama.webp?v=2nzf3bgegg" alt="Panorama: thumbnails of Desktop 1, Desktop 2 and Desktop 3 along the top, and below them two Settings windows, on the Trackpad and Keyboard panes, side by side." width="945" height="690" loading="lazy" decoding="async"/></a><figcaption><strong>Panorama</strong><small>All your windows and desktops at a glance.</small></figcaption></figure><figure><a href="/screenshots"><img class="shot" src="/assets/shots/store.webp?v=1ialct828r" alt="The Store&#x27;s Discover page: a green featured banner for the app Kitties, then a shelf of popular apps on Flathub, such as Firefox, Discord and darktable, and a Trending shelf, each app with a Get button." width="1600" height="1107" loading="lazy" decoding="async"/></a><figcaption><strong>Store</strong><small>The Store, with apps from Flathub. No account needed.</small></figcaption></figure><figure><a href="/screenshots"><img class="shot" src="/assets/shots/settings-appearance.webp?v=3n729mmq6a" alt="Settings on the Appearance pane: the theme choices OoidOS, which is selected, and Cupertino; the appearance choices Auto, Light, which is selected, and Dark; and a row of accent colours." width="1600" height="1373" loading="lazy" decoding="async"/></a><figcaption><strong>Appearance</strong><small>Choose a look, light or dark, and an accent colour.</small></figcaption></figure></div><div class="actions"><a href="/screenshots" class="btn btn-outline">See all the screenshots</a></div></div></section><section class="section" aria-labelledby="try"><div class="container"><div class="section-head"><span class="eyebrow">Get started</span><h2 id="try" class="section-title">Try it in three steps</h2><p class="section-intro">Most PCs and laptops with an Intel or AMD processor can run it. <a href="/docs/requirements">Check yours</a>.</p></div><ol class="grid-3 m-0 list-none p-0"><li class="card"><span class="card-step">Step <!-- -->1</span><h3 class="card-title">Get a USB stick</h3><p class="card-text">The OoidOS image is coming soon. Write it to any USB stick of 2 GB or more.</p></li><li class="card"><span class="card-step">Step <!-- -->2</span><h3 class="card-title">Start your computer from it</h3><p class="card-text">OoidOS runs straight from the stick. Nothing on your computer changes.</p></li><li class="card"><span class="card-step">Step <!-- -->3</span><h3 class="card-title">Look around, then decide</h3><p class="card-text">Like it? Install OoidOS on its own, or next to the system you already have.</p></li></ol></div></section><section class="section" aria-labelledby="ready"><div class="container"><div class="cta"><h2 id="ready" class="section-title">Ready to try OoidOS?</h2><p class="section-intro">Start it from a USB stick, look around, and install it when you&#x27;re ready.</p><div class="actions"><a href="/docs/requirements" class="btn btn-primary">Try it</a><a href="/docs" class="btn btn-outline">Read the docs</a></div></div><p class="hero-note text-center">For developers: <a href="/docs/build-the-image">build OoidOS yourself, package apps and more</a>.</p></div></section></main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand-mark"><img src="/assets/ooidget.svg?v=209nauxifp" alt="" width="24" height="24">OoidOS</a>
+          <p>A calm, tidy desktop that's yours to control.</p>
+        </div>
+        <nav class="footer-col" aria-label="Product"><h2>Product</h2><ul><li><a href="/#features" >Features</a></li><li><a href="/screenshots" >Screenshots</a></li><li><a href="/docs/roadmap" >Roadmap</a></li></ul></nav><nav class="footer-col" aria-label="Docs"><h2>Docs</h2><ul><li><a href="/docs/requirements" >Getting started</a></li><li><a href="/docs/files" >Using OoidOS</a></li><li><a href="/docs/build-the-image" >For developers</a></li></ul></nav><nav class="footer-col" aria-label="Project"><h2>Project</h2><ul><li><a href="/philosophy" >Philosophy</a></li><li><a href="/licensing" >Licensing</a></li><li><a href="https://ooidget.org/" rel="external">Ooidget</a></li></ul></nav>
+      </div>
+      <div class="footer-legal">
+        <span>OoidOS is provided as is, without warranty.</span>
+        <span><a href="/licensing">Licensing</a></span>
+      </div>
+    </div>
+  </footer>
+<script type="module" src="/_rsc/runtime.js"></script></body>
+</html>

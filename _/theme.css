@@ -1,0 +1,2240 @@
+/* The layers in Tailwind's order. Load this after /_/tw.css, as an app's CSS follows @import "tailwindcss": its base rules come after preflight. */
+@layer theme, base, components, utilities;
+/* Borders in the theme's border colour, not the text colour, as shadcn's base has them. */
+@layer base {
+  *, ::before, ::after, ::backdrop, ::file-selector-button { border-color: var(--border, hsl(0 0% 89.8%)); }
+}
+/* Sluurp's own styles, in the components layer: a utility on the same element wins. */
+@layer components {
+/**
+ * Design tokens and components.
+ *
+ * The vocabulary is the common one — background/foreground pairs,
+ * muted, accent, destructive, ring, a single radius — because it is a
+ * well-worn set that covers an admin interface without inventing names. What
+ * is *not* borrowed is the implementation: component kits are React plus Tailwind plus
+ * Radix, and this has no build step, so the tokens are plain custom
+ * properties and the components are plain classes.
+ *
+ * Colours are stored as bare HSL triplets rather than finished colours, which
+ * is what lets a token be used at partial opacity — `color-mix(in oklab, var(--ring) 40%, transparent)` —
+ * without a second token for every alpha.
+ */
+
+/* The admin's typefaces, vendored rather than linked.
+ *
+ * A single binary that has to work on an airgapped box cannot fetch its own
+ * typeface at runtime, and a font request to a third party is a request the
+ * operator did not agree to. The subsetted files are small next to what is
+ * already compiled in.
+ *
+ * SIL Open Font License 1.1 — see ui/fonts/LICENSE.txt, which ships with them
+ * because the licence requires it.
+ *
+ * `swap` so text is readable immediately in the fallback and reflows once the
+ * face arrives, rather than the page sitting blank while it loads.
+ */
+/* Geist and Geist Mono, as the default theme has them (SIL OFL,
+   ui/fonts/LICENSE.txt): Latin and Latin Extended, each loaded only when a
+   page has a character in its range. */
+@font-face {
+  font-family: "Geist";
+  src: url("fonts/geist-latin-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("fonts/geist-latin-ext-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("fonts/geist-latin-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("fonts/geist-latin-ext-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("fonts/geist-latin-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("fonts/geist-latin-ext-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("fonts/geist-mono-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("fonts/geist-mono-latin-ext.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+:root,
+/* A light corner of a dark page: the Components screen's canvas. */
+.light {
+  /* Palette colours, as a page's tables and backgrounds show them: the band
+     of lightness they are kept to, how vivid they may be, and how strongly a
+     wash of one shows. See client/pages/palette.ts. */
+  --tone-l-min: 0.55;
+  --tone-l-max: 0.85;
+  --tone-c-max: 0.18;
+  --tone-wash: 1;
+  /* Round something floating over the page — the agent's field: a warm
+     glow, even on every side; light brown on dark, where it shows. */
+  --float-shadow: 0 0 28px rgb(0 0 0 / 0.14), 0 0 8px rgb(0 0 0 / 0.08);
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 3.9%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 3.9%);
+
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 3.9%);
+
+  --primary: hsl(0 0% 9.1%);
+  --primary-foreground: hsl(0 0% 98%);
+
+  --secondary: hsl(0 0% 96.1%);
+  --secondary-foreground: hsl(0 0% 9.1%);
+
+  --muted: hsl(0 0% 96.1%);
+  --muted-foreground: hsl(0 0% 40%);
+
+  --accent: hsl(0 0% 96.1%);
+  --accent-foreground: hsl(0 0% 9.1%);
+
+  --destructive: hsl(357.2 100% 40%);
+  --destructive-foreground: hsl(0 0% 98%);
+
+  --success: hsl(142 71% 35%);
+  --warning: hsl(32 95% 44%);
+  /* Ink steps for text on a tint of the same hue: the fill colour itself does
+     not reach 4.5:1 against its own 12% wash. */
+  --destructive-ink: hsl(0 72% 33%);
+  --success-ink: hsl(142 72% 22%);
+  --warning-ink: hsl(32 95% 28%);
+
+  --border: hsl(0 0% 89.8%);
+  --input: hsl(0 0% 89.8%);
+  --ring: hsl(0 0% 63%);
+
+  /* The sidebar is its own surface rather than a tint of the page: a wash
+     that light reads as "slightly grey" and nothing more, whereas a distinct
+     surface makes the navigation legible as a separate region at a glance. */
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(0 0% 3.9%);
+  --sidebar-muted: hsl(240 5% 64.9%);
+  --sidebar-accent: hsl(0 0% 96.1%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent-foreground: hsl(0 0% 9.1%);
+  --sidebar-border: hsl(0 0% 89.8%);
+  --sidebar-ring: hsl(0 0% 63%);
+
+  /* The one hue the interface uses for identity rather than state. It is the
+     same blue as chart slot 1, so the mark and the data agree. */
+  --brand: hsl(212 72% 42%);
+
+  --radius: 0.5rem;
+
+  /* A 4px spacing scale and a type scale. Rhythm comes from everything
+     agreeing on the same steps, not from each component choosing a value
+     that looked right on its own. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 28px;
+  --space-7: 34px;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  /* 14, not 15: a step of one pixel from --text-sm read as two sizes that
+     meant to be one (designer-eye: 13 screens). */
+  --text-base: 14px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+
+  /* One control height, so inputs and buttons line up on a row. */
+  --control: 36px;
+
+  /* Plex Mono reads a step larger than Plex Sans at equal px, so code-ish
+     text gets its own sizes instead of borrowing the prose scale. */
+  --mono-sm: 12.5px;
+  --mono-xs: 11.5px;
+
+  /* Chart colours are a separate parameter from the interface palette: they
+     encode data, not hierarchy, and are validated against the surface they
+     are drawn on rather than chosen to match it. */
+  --chart-surface: #ffffff;
+  /* The categorical series colours.
+
+     Not the usual ones, and the reason is measurable: its chart-4 and chart-5 sit
+     7.4 apart in OKLab, which is below the point where full colour vision can
+     separate them, and 5.6 apart under deuteranopia. Two series in one chart
+     wearing the same colour is the chart failing at the only job it has.
+
+     These five are re-stepped and checked: every adjacent pair clears 14.8
+     under each of protan, deutan and tritan simulation, all five sit inside
+     one lightness band so no series shouts louder than another, and all five
+     clear 3:1 against the surface. Order is part of the guarantee — the
+     checks are on adjacent pairs, so a chart must take them in this order
+     and never cycle past the fifth. */
+  --chart-1: hsl(221 83.2% 53.3%);
+  --chart-2: hsl(262 83.3% 57.8%);
+  --chart-3: hsl(21 90.2% 48.2%);
+  --chart-4: hsl(220 8.9% 46.1%);
+  --chart-5: hsl(175 100% 29.4%);
+  --chart-grid: hsl(240 5.9% 90%);
+
+  --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+
+/* The dark steps are chosen for the dark surface, not derived by inverting
+   the light ones — an inverted chart colour lands outside its lightness band
+   and stops being distinguishable. */
+.dark,
+:root[data-theme="dark"] {
+  /* Lighter and softer on the dark surface, and washed more strongly:
+     the same share of a colour shows less over black than over white. */
+  --tone-l-min: 0.66;
+  --tone-l-max: 0.82;
+  --tone-c-max: 0.15;
+  --tone-wash: 1.6;
+  --float-shadow: 0 0 32px rgb(170 170 170 / 0.22), 0 0 10px rgb(170 170 170 / 0.14);
+  --background: hsl(0 0% 3.9%);
+  --foreground: hsl(0 0% 98%);
+
+  --card: hsl(0 0% 9.1%);
+  --card-foreground: hsl(0 0% 98%);
+
+  --popover: hsl(0 0% 9.1%);
+  --popover-foreground: hsl(0 0% 98%);
+
+  --primary: hsl(0 0% 89.8%);
+  --primary-foreground: hsl(0 0% 9.1%);
+
+  --secondary: hsl(0 0% 14.9%);
+  --secondary-foreground: hsl(0 0% 98%);
+
+  --muted: hsl(0 0% 14.9%);
+  --muted-foreground: hsl(0 0% 63%);
+
+  --accent: hsl(0 0% 14.9%);
+  --accent-foreground: hsl(0 0% 98%);
+
+  --destructive: hsl(358.7 100% 69.6%);
+  --destructive-foreground: hsl(0 0% 98%);
+
+  --success: hsl(142 64% 45%);
+  --warning: hsl(38 92% 50%);
+    --destructive-ink: hsl(0 90% 79%);
+    --success-ink: hsl(142 70% 72%);
+    --warning-ink: hsl(38 95% 75%);
+  --destructive-ink: hsl(0 90% 79%);
+  --success-ink: hsl(142 70% 72%);
+  --warning-ink: hsl(38 95% 75%);
+
+  --border: hsl(0 0% 13.5%);
+  --input: hsl(0 0% 18.3%);
+  --ring: hsl(0 0% 45.2%);
+
+  /* Already dark, so the sidebar lifts slightly instead of dropping —
+     separation, not another step into the dark. */
+  --sidebar: hsl(0 0% 9.1%);
+  --sidebar-foreground: hsl(0 0% 98%);
+  --sidebar-muted: hsl(240 5% 64.9%);
+  --sidebar-accent: hsl(0 0% 14.9%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent-foreground: hsl(0 0% 98%);
+  --sidebar-border: hsl(0 0% 13.5%);
+  --sidebar-ring: hsl(0 0% 45%);
+
+  --brand: hsl(212 74% 56%);
+
+  --chart-surface: #09090b;
+  /* Chosen against the dark surface rather than flipped: the light steps
+     are all too light on black, and an automatic inversion puts three of the
+     five outside the band. Re-checked, and passing. */
+  --chart-1: hsl(217 91.2% 59.8%);
+  --chart-2: hsl(258 89.5% 66.3%);
+  --chart-3: hsl(21 90.2% 52%);
+  --chart-4: hsl(218 11% 65%);
+  --chart-5: hsl(175 83.9% 36%);
+  --chart-grid: hsl(240 3.7% 20%);
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tone-l-min: 0.66;
+    --tone-l-max: 0.82;
+    --tone-c-max: 0.15;
+    --tone-wash: 1.6;
+    --float-shadow: 0 0 32px rgb(170 170 170 / 0.22), 0 0 10px rgb(170 170 170 / 0.14);
+    --background: hsl(0 0% 3.9%);
+    --foreground: hsl(0 0% 98%);
+    --card: hsl(0 0% 9.1%);
+    --card-foreground: hsl(0 0% 98%);
+    --popover: hsl(0 0% 9.1%);
+    --popover-foreground: hsl(0 0% 98%);
+    --primary: hsl(0 0% 89.8%);
+    --primary-foreground: hsl(0 0% 9.1%);
+    --secondary: hsl(0 0% 14.9%);
+    --secondary-foreground: hsl(0 0% 98%);
+    --muted: hsl(0 0% 14.9%);
+    --muted-foreground: hsl(0 0% 63%);
+    --accent: hsl(0 0% 14.9%);
+    --accent-foreground: hsl(0 0% 98%);
+    --destructive: hsl(358.7 100% 69.6%);
+    --destructive-foreground: hsl(0 0% 98%);
+    --success: hsl(142 64% 45%);
+  --warning: hsl(38 92% 50%);
+    --destructive-ink: hsl(0 90% 79%);
+    --success-ink: hsl(142 70% 72%);
+    --warning-ink: hsl(38 95% 75%);
+    --border: hsl(0 0% 13.5%);
+    --input: hsl(0 0% 18.3%);
+    --ring: hsl(0 0% 45.2%);
+    --sidebar: hsl(0 0% 9.1%);
+    --sidebar-foreground: hsl(0 0% 98%);
+    --sidebar-muted: hsl(240 5% 64.9%);
+    --sidebar-accent: hsl(0 0% 14.9%);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent-foreground: hsl(0 0% 98%);
+    --sidebar-border: hsl(0 0% 13.5%);
+  --sidebar-ring: hsl(0 0% 45%);
+    --brand: hsl(212 74% 56%);
+    --chart-surface: #09090b;
+    /* Chosen against the dark surface rather than flipped: the light steps
+       are all too light on black, and an automatic inversion puts three of the
+       five outside the band. Re-checked, and passing. */
+    --chart-1: hsl(217 91.2% 59.8%);
+    --chart-2: hsl(258 89.5% 66.3%);
+    --chart-3: hsl(21 90.2% 52%);
+    --chart-4: hsl(218 11% 65%);
+    --chart-5: hsl(175 83.9% 36%);
+    --chart-grid: hsl(240 3.7% 20%);
+    color-scheme: dark;
+  }
+}
+
+/* ------------------------------------------------------------ base */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font: var(--text-base)/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------- scrollbars */
+
+/* The platform's own scrollbar is a light slab with arrow buttons, which on a
+   dark panel is the loudest thing on screen. These two declarations are the
+   standard way and inherit, so one place covers every scrolling box; the
+   `::-webkit-` rules below are for the browsers that have not caught up. */
+html {
+  scrollbar-color: var(--border) transparent;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-corner { background: transparent; }
+/* The stepper arrows belong to a mouse nobody has used for a decade. */
+::-webkit-scrollbar-button { display: none; }
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 999px;
+  /* A transparent border with `padding-box` insets the thumb, so it reads as
+     a bar floating in the gutter rather than filling it. */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+@media (hover: hover) { ::-webkit-scrollbar-thumb:hover { background-color: color-mix(in oklab, var(--muted-foreground) 50%, transparent); } }
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* One ring definition, so every focusable thing agrees. */
+.ring:focus-visible,
+.btn:focus-visible,
+.input:focus-visible,
+.select:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------- button */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid transparent;
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  height: var(--control);
+  padding: 0 var(--space-3);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  transition: background-color 120ms, color 120ms, border-color 120ms;
+}
+
+@media (hover: hover) { .btn:hover { background: color-mix(in oklab, var(--primary) 90%, transparent); } }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+@media (hover: hover) { .btn-secondary:hover { background: color-mix(in oklab, var(--secondary) 80%, transparent); } }
+
+.btn-outline {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--border);
+}
+@media (hover: hover) { .btn-outline:hover { background: var(--accent); } }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--foreground);
+}
+@media (hover: hover) { .btn-ghost:hover { background: var(--accent); } }
+
+.btn-destructive {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+@media (hover: hover) { .btn-destructive:hover { background: color-mix(in oklab, var(--destructive) 90%, transparent); } }
+
+.btn-sm { height: 30px; padding: 0 var(--space-3); }
+.btn-icon { width: var(--control); padding: 0; }
+
+/* The button on the wrong side of a confirmation. Its own variant rather
+   than a colour passed in, so that "this one deletes something" is a thing
+   the markup says and not a thing a stylesheet happens to do. */
+.btn-destructive {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  border-color: transparent;
+}
+@media (hover: hover) { .btn-destructive:hover { background: color-mix(in oklab, var(--destructive) 90%, transparent); } }
+.btn-destructive:focus-visible { outline-color: var(--destructive); }
+.btn-block { width: 100%; }
+
+/* -------------------------------------------------------- combobox */
+
+/* A searchable picker. The list is positioned rather than portalled, so it
+   needs a stacking context of its own and an ancestor that does not clip. */
+.combobox { position: relative; }
+.combobox-control { position: relative; display: flex; }
+.combobox-control .input { padding-right: var(--space-7); }
+.combobox-clear {
+  position: absolute; right: 2px; top: 2px;
+  width: 32px; height: 32px;
+  color: var(--muted-foreground);
+}
+/* The popup a combobox and a select share: one definition, so a searchable
+   picker and a plain listbox cannot drift apart. */
+/* ------------------------------------------------------------- tooltip
+ *
+ * The panel is a sibling of the trigger inside a wrapper, positioned against
+ * that wrapper. `pointer-events: none` matters more than it looks: a panel
+ * that can be hovered sits between the pointer and whatever is underneath,
+ * and a tooltip drawn below its trigger would then swallow the click that
+ * was aimed at the thing it describes.
+ */
+.tooltip-host { position: relative; display: inline-flex; }
+
+.tooltip {
+  position: absolute; z-index: 60;
+  padding: 5px var(--space-3);
+  border-radius: calc(var(--radius) - 3px);
+  background: var(--foreground); color: var(--background);
+  font-size: var(--text-xs); line-height: 1.4; font-weight: 500;
+  white-space: nowrap; pointer-events: none;
+  box-shadow: 0 4px 12px hsl(240 10% 3.9% / 0.18);
+  opacity: 0; transform: scale(0.96);
+  transition: opacity 110ms ease, transform 110ms ease;
+}
+/* Transparent, not hidden.
+ *
+ * `visibility: hidden` and `display: none` both take an element out of the
+ * accessibility tree, and a tooltip that *names* an icon button has to stay
+ * in it — otherwise the button is nameless whenever the tooltip is closed,
+ * which is almost always. Transparency is what hides it from the eye while
+ * leaving the name intact; `pointer-events: none` above is what keeps the
+ * invisible box from catching anything.
+ *
+ * It is not announced twice for being present: a `role="tooltip"` element is
+ * reached through the relationship that points at it, not read as content in
+ * its own right. */
+.tooltip[data-open] { opacity: 1; transform: scale(1); }
+
+.tooltip[data-placement="top"] {
+  bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%) scale(0.96);
+}
+.tooltip[data-placement="top"][data-open] { transform: translateX(-50%) scale(1); }
+
+.tooltip[data-placement="bottom"] {
+  top: calc(100% + 6px); left: 50%; transform: translateX(-50%) scale(0.96);
+}
+.tooltip[data-placement="bottom"][data-open] { transform: translateX(-50%) scale(1); }
+
+.tooltip[data-placement="right"] {
+  left: calc(100% + 8px); top: 50%; transform: translateY(-50%) scale(0.96);
+}
+.tooltip[data-placement="right"][data-open] { transform: translateY(-50%) scale(1); }
+
+.tooltip[data-placement="left"] {
+  right: calc(100% + 8px); top: 50%; transform: translateY(-50%) scale(0.96);
+}
+.tooltip[data-placement="left"][data-open] { transform: translateY(-50%) scale(1); }
+
+/* Somebody who has asked for less movement gets the panel without the
+   scaling, not without the tooltip. */
+@media (prefers-reduced-motion: reduce) {
+  .tooltip, .tooltip[data-open] { transition: none; transform: none; }
+  .tooltip[data-placement="top"], .tooltip[data-placement="bottom"],
+  .tooltip[data-placement="top"][data-open], .tooltip[data-placement="bottom"][data-open] {
+    transform: translateX(-50%);
+  }
+  .tooltip[data-placement="left"], .tooltip[data-placement="right"],
+  .tooltip[data-placement="left"][data-open], .tooltip[data-placement="right"][data-open] {
+    transform: translateY(-50%);
+  }
+}
+
+.menu {
+  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px);
+  max-height: min(260px, 50dvh); overflow-y: auto;
+  background: var(--popover); color: var(--popover-foreground);
+  border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px);
+  box-shadow: 0 10px 28px hsl(240 10% 3.9% / 0.16);
+  padding: var(--space-1);
+}
+.menu-item {
+  display: flex; align-items: center; gap: var(--space-2); width: 100%;
+  padding: var(--space-2) var(--space-3); border: 0; background: none;
+  border-radius: calc(var(--radius) - 4px); text-align: left;
+  font: inherit; font-size: var(--text-sm); color: inherit;
+}
+.menu-item.active { background: var(--accent); }
+@media (hover: hover) { .menu-item:hover { background: var(--accent); } }
+.menu-item[aria-selected="true"] { font-weight: 500; }
+.menu-item .menu-check { margin-left: auto; color: var(--brand); }
+.menu-item.unavailable { cursor: not-allowed; color: var(--muted-foreground); }
+@media (hover: hover) { .menu-item.unavailable:hover { background: none; } }
+.menu-item .menu-reason {
+  margin-left: auto; font-size: var(--text-xs);
+  color: var(--muted-foreground);
+}
+.menu-item .menu-hint {
+  margin-left: auto; font-family: var(--mono); font-size: var(--mono-xs);
+  color: var(--muted-foreground);
+}
+.menu-empty {
+  margin: 0; padding: var(--space-3); font-size: var(--text-sm);
+  color: var(--muted-foreground);
+}
+
+/* A select rendered as a listbox: a button that looks exactly like an input,
+   because the native popup is drawn by the OS and cannot be themed. */
+.picker { position: relative; }
+.input.picker-trigger {
+  display: flex; align-items: center; gap: var(--space-2); width: 100%;
+  text-align: left;
+}
+.picker-trigger .picker-value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker-trigger .picker-value.placeholder { color: var(--muted-foreground); }
+.picker-trigger .picker-arrow { flex: 0 0 auto; color: var(--muted-foreground); }
+
+/* A checkbox reads as one target with its label, so the label is the box. */
+.check {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+.checkbox { width: 16px; height: 16px; accent-color: var(--primary); margin: 0; }
+
+/* A relation renders as a link to the row it points at. */
+.rel { color: var(--brand); text-decoration: none; }
+@media (hover: hover) { .rel:hover { text-decoration: underline; } }
+
+.hint.error { color: var(--destructive-ink); }
+
+/* ------------------------------------------------------------ forms */
+
+.sluurp-form .field + .field { margin-top: var(--space-4); }
+.sluurp-form form > .btn { margin-top: var(--space-5); }
+.form-multi { display: flex; flex-direction: column; gap: var(--space-2); }
+.form-done {
+  margin: 0; padding: var(--space-3) var(--space-4);
+  background: color-mix(in oklab, var(--success) 12%, transparent); color: var(--success-ink);
+  border-radius: calc(var(--radius) - 2px); font-size: var(--text-sm);
+}
+
+/* A poll's bars are the result; the numbers beside them are for anyone who
+   cannot judge a length, which includes everyone comparing two close ones. */
+.poll-options { border: 0; margin: 0 0 var(--space-4); padding: 0; }
+.poll-options .label { padding: 0; margin-bottom: var(--space-2); }
+.poll-options .check { display: flex; padding: var(--space-1) 0; }
+.poll-results { list-style: none; margin: var(--space-4) 0 0; padding: 0; }
+.poll-result + .poll-result { margin-top: var(--space-3); }
+.poll-row {
+  display: flex; align-items: baseline; gap: var(--space-3);
+  font-size: var(--text-sm); margin-bottom: var(--space-1);
+}
+.poll-option { flex: 1; }
+.poll-count { color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.poll-bar {
+  display: block; height: 8px; border-radius: 999px;
+  background: var(--muted); overflow: hidden;
+}
+.poll-bar span {
+  display: block; height: 100%; background: var(--brand);
+  border-radius: 999px; transition: width 240ms ease-out;
+}
+.poll-result.yours .poll-bar span { background: var(--primary); }
+.poll-total {
+  margin: var(--space-3) 0 0; font-size: var(--text-xs);
+  color: var(--muted-foreground);
+}
+@media (prefers-reduced-motion: reduce) {
+  .poll-bar span { transition: none; }
+}
+
+/* -------------------------------------------------------- calendar */
+
+/* The calendar sizes itself to seven columns rather than stretching to the
+   trigger, which is what keeps a day square whatever the field's width. */
+.calendar {
+  left: 0; right: auto; width: max-content; max-height: none;
+  padding: var(--space-3) var(--space-3) var(--space-2);
+}
+.cal-head {
+  display: flex; align-items: center; gap: var(--space-1);
+  font-size: var(--text-sm);
+  padding: 0 var(--space-1) 0 var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.cal-head .grow { flex: 1; }
+.cal-head .btn-icon { width: 28px; height: 28px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 34px); gap: 2px; }
+/* A week is a row for assistive technology and no box at all for layout, so
+   the days stay on the parent's seven-column grid. */
+.cal-week { display: contents; }
+.cal-weekdays {
+  margin-bottom: var(--space-1); font-size: var(--text-xs); font-weight: 500;
+  color: var(--muted-foreground);
+}
+.cal-weekdays span { display: flex; align-items: center; justify-content: center; height: 24px; }
+.cal-day {
+  height: 32px; border: 0; background: none;
+  border-radius: calc(var(--radius) - 4px);
+  font: inherit; font-size: var(--text-sm); color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+@media (hover: hover) { .cal-day:hover:not(:disabled) { background: var(--accent); } }
+.cal-day:disabled { opacity: 0.35; cursor: not-allowed; }
+.cal-day.outside { color: var(--muted-foreground); }
+/* Today is marked by a ring, so it stays legible once it is also selected. */
+.cal-day.today { box-shadow: inset 0 0 0 1px var(--border); }
+.cal-day.focused { outline: 2px solid var(--ring); outline-offset: -2px; }
+@media (hover: hover) { .table tbody tr.clickable:hover { background: color-mix(in oklab, var(--muted) 60%, transparent); } }
+
+/* A range: the ends are solid, the days between take a tint, and the corners
+   are squared off so the span reads as one block rather than as pills. */
+.cal-day.inside { background: color-mix(in oklab, var(--primary) 10%, transparent); border-radius: 0; }
+@media (hover: hover) { .cal-day.inside:hover:not(:disabled) { background: color-mix(in oklab, var(--primary) 18%, transparent); } }
+.cal-day.selected {
+  background: var(--primary); color: var(--primary-foreground);
+}
+@media (hover: hover) { .cal-day.selected:hover { background: color-mix(in oklab, var(--primary) 90%, transparent); } }
+.cal-day.start { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.cal-day.end { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.cal-foot {
+  display: flex; align-items: center; gap: var(--space-2);
+  margin-top: var(--space-3); padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+/* The footer's buttons are ghosts with their own padding, so they are pulled
+   flush with the grid rather than sitting a button's padding further in. */
+.cal-foot .btn:first-child { margin-left: calc(var(--space-3) * -1 + var(--space-2)); }
+.cal-foot .btn:last-child { margin-right: calc(var(--space-3) * -1 + var(--space-2)); }
+.cal-foot .grow { flex: 1; }
+.cal-status { font-size: var(--text-xs); color: var(--muted-foreground); }
+
+/* ----------------------------------------------------------- input */
+
+.input,
+.select,
+.textarea {
+  display: block;
+  width: 100%;
+  height: var(--control);
+  padding: 0 var(--space-3);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--input);
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+}
+
+.select {
+  appearance: none;
+  padding-right: var(--space-7);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+}
+
+.textarea {
+  height: auto;
+  min-height: 96px;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--mono);
+  font-size: var(--mono-sm);
+  resize: vertical;
+}
+
+.input::placeholder,
+.textarea::placeholder { color: var(--muted-foreground); }
+
+.label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-2);
+  color: var(--foreground);
+}
+
+.hint { font-size: var(--text-xs); color: var(--muted-foreground); }
+/* A field's hint belongs to it: close under it, and the next field clearly apart. */
+.field > .hint { margin: var(--space-1) 0 0; }
+
+/* Marks a required field. Colour alone would not be enough to carry the
+   meaning, which is why it is an asterisk that happens to be red rather than
+   a red field name. */
+.required { color: var(--destructive); font-weight: 600; }
+
+.brand-mark { color: var(--brand); display: inline-flex; }
+
+/* The sidebar toggle, and the mark that stands in for it on the rail.
+   Expanded, the mark is already beside the name, so the toggle shows.
+   Collapsed, the mark sits over the toggle, which is still there and still
+   the thing that is clicked or tabbed to: it is faded out rather than
+   hidden, because a hidden button is one a keyboard cannot reach, and the
+   mark lets the pointer through to it. */
+.rail-toggle { position: relative; display: inline-flex; }
+.rail-mark {
+  position: absolute; inset: 0;
+  display: none; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.rail-mark svg { width: 18px; height: 18px; }
+[data-collapsible="icon"] .rail-mark { display: flex; }
+[data-collapsible="icon"] .rail-toggle > :not(.rail-mark) { opacity: 0; transition: opacity 0.12s; }
+[data-collapsible="icon"] .rail-toggle:focus-within .rail-mark { display: none; }
+[data-collapsible="icon"] .rail-toggle:focus-within > :not(.rail-mark) { opacity: 1; }
+@media (hover: hover) {
+  [data-collapsible="icon"] .rail-toggle:hover .rail-mark { display: none; }
+  [data-collapsible="icon"] .rail-toggle:hover > :not(.rail-mark) { opacity: 1; }
+}
+.field { margin-bottom: var(--space-6); }
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+/* ------------------------------------------------------------ card */
+
+.card {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  /* A line for the edge and nothing else. A shadow says "a surface above
+     the page", which is true of a dialog and not of a card that never
+     moves; a column of them all lifted reads as clutter. Where they need
+     dividing, a rule between them does it — see `.dash` below. */
+}
+
+.card-header { padding: var(--space-5) var(--space-5) 0; }
+/* A setting (Section side): on a wide screen, what it is on the left, its controls on the right. */
+@media (min-width: 1024px) {
+  .card-side { display: grid; grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr); }
+  .card-side > .card-header { padding-bottom: var(--space-5); }
+  .card-side > .card-header .card-description { font-size: var(--text-xs); }
+  .card-side > .card-content { padding-left: 0; }
+}
+.card-title { margin: 0; font-size: var(--text-base); font-weight: 600; }
+.card-description { margin: var(--space-1) 0 0; max-width: 72ch; font-size: var(--text-sm); line-height: 1.5; color: var(--muted-foreground); text-wrap: pretty; }
+.card-content { padding: var(--space-5); }
+/* A section with nothing in its body (a setting turned off): no padded gap where it would be, the header's room kept. */
+.card-content:not(:has(*)) { display: none; }
+.card:has(> .card-content:not(:has(*))) > .card-header { padding-bottom: var(--space-5); }.card-footer { padding: 0 var(--space-5) var(--space-5); display: flex; gap: var(--space-2); align-items: center; }
+
+/* ----------------------------------------------------------- badge */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border: 1px solid transparent;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.badge-outline {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--muted-foreground);
+}
+.badge-destructive {
+  background: color-mix(in oklab, var(--destructive) 12%, transparent);
+  color: var(--destructive);
+}
+.badge-success {
+  background: color-mix(in oklab, var(--success) 14%, transparent);
+  color: var(--success);
+}
+.badge-mono { font-family: var(--mono); font-size: var(--mono-xs); }
+
+/* ----------------------------------------------------------- table */
+
+/* A table is the one thing that genuinely cannot reflow, so it scrolls
+   sideways inside its own box rather than making the whole page do it. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+
+.table th {
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--muted-foreground);
+  /* Tight rows. A table is for comparing one row against the next, and the
+     further apart they are the more of that comparison happens from
+     memory. */
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  user-select: none;
+}
+
+/* Over a column of text boxes: the heading over the text in them, not over
+   their borders (the input's padding and border, 13px in). A column of
+   pickers reads from its box's edge, so its heading stays put. */
+.table th.over-input { padding-left: calc(var(--space-3) + 13px); }
+.table th.sortable { }
+@media (hover: hover) { .table th.sortable:hover { color: var(--foreground); } }
+
+.table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (hover: hover) { .table tbody tr:hover { background: color-mix(in oklab, var(--muted) 60%, transparent); } }
+
+/* A long list in a box of its own: tight rows, scrolled inside the box with
+   its header kept in view, so it never pushes the rest of the screen away. */
+.table-box { max-height: 20rem; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+.table-box .table tbody tr:last-child td { border-bottom: 0; }
+.table-compact td { padding: 0.3rem var(--space-3); height: 2.25rem; }
+.table-compact th { padding-top: 0.4rem; padding-bottom: 0.4rem; }
+.table .mono { font-family: var(--mono); font-size: var(--mono-xs); color: var(--muted-foreground); }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.nullish { color: var(--muted-foreground); font-style: italic; }
+
+/* A column heading: its kind, its name, and which way it is sorted. */
+.col-head { display: inline-flex; align-items: center; gap: var(--space-2); }
+.col-head svg { width: 14px; height: 14px; opacity: 0.6; flex: 0 0 auto; }
+.col-head .arrow { display: inline-flex; opacity: 0.7; }
+.col-head .arrow svg { width: 12px; height: 12px; }
+.col-head .arrow.up svg { transform: rotate(180deg); }
+
+/* The kind of a field, beside its name in a form. The same mark the table
+   head uses, at the size a label can carry. */
+.label .kind { display: inline-flex; vertical-align: -2px; margin-right: var(--space-2); }
+.label .kind svg { width: 13px; height: 13px; opacity: 0.55; }
+
+/* An id, and a way to take it with you. Monospaced because it is machine
+   text, and a chip because it is a control rather than a word. */
+.id-chip, .rel-chip {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  max-width: 100%;
+  /* One height for both, on the scale (24): side by side in a row, an id and a relation are alike. */
+  height: 24px;
+  padding: 0 var(--space-2);
+  border: 0; border-radius: var(--radius-sm, 4px);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font: inherit;
+}
+/* Full ink, like the relation chip: muted text on a muted chip is under
+   4.5:1, and an id is read character by character when it is read at all. */
+.id-chip { font-family: var(--mono); font-size: var(--mono-xs); color: var(--foreground); }
+.id-chip span, .rel-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.id-chip svg, .rel-chip svg { width: 13px; height: 13px; opacity: 0.55; flex: 0 0 auto; }
+@media (hover: hover) {
+  .id-chip:hover, .rel-chip:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--muted) 70%, transparent); color: var(--foreground);
+  }
+}
+.rel-chip { font-size: var(--text-sm); color: var(--foreground); }
+/* A relation with nothing in it keeps its shape and says so, because a
+   column that changes shape per row is harder to scan than the data. */
+.rel-chip:disabled { cursor: default; color: var(--muted-foreground); opacity: 0.7; }
+
+
+/* The tick column: as narrow as a checkbox and no wider, so it reads as a
+   margin of the table rather than as its first column of data. */
+.table th.tick, .table td.tick { width: 1px; padding-right: 0; }
+/* ----------------------------------------------------------- the grid
+
+   One table for a shape that is several tables deep. The cells above a
+   nested block span down it, so the lines that matter are the ones between
+   groups — everything else is a row of one thing beside another.
+
+   Not called `grid`: that is a Tailwind utility, and a class the kit puts
+   on a checkbox is a class this stylesheet would silently be styling. */
+/* Room around it. A grid that runs into the edge of the window reads as
+   something that was cut off rather than something that ends. */
+/* `--space-8` does not exist, and a shorthand with one undefined custom
+   property in it is dropped whole — which is why this was doing nothing. */
+.explore-wrap { padding: var(--space-3) var(--space-4) var(--space-7); }
+.explore-grid {
+  width: max-content; min-width: 100%;
+  /* `separate` rather than `collapse` so the table can have a radius at
+     all: a collapsed table's own border is drawn by its cells, and a corner
+     drawn by a cell cannot round the table. The spacing is zero, so the
+     cells still meet. */
+  border-collapse: separate; border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  /* Dense on purpose. This is a screen for reading a lot of rows at once,
+     and the padding that makes a form comfortable makes a grid a thing you
+     scroll. The text stays the size it is elsewhere — what was costing the
+     room was the space around it. Tabular numerals so figures line up. */
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.explore-grid th, .explore-grid td {
+  /* Tight sideways, where the columns are doing the separating anyway, and
+     air above and below, where the eye needs it to keep hold of a line
+     across a wide shape. */
+  padding: 5px 6px;
+  /* Lines both ways. A column of values with nothing between it and the
+     next is fine until two of them hold the same kind of thing, which in a
+     grid of joined tables is most of the time. */
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  text-align: left; vertical-align: top; white-space: nowrap;
+}
+
+/* Every level counts its own rows, so there is a number column at the head
+   of each one rather than one down the side of the grid: the third line
+   item of an order is the third of that order, not the ninth thing on the
+   screen. The outermost one sticks to the left, where scrolling sideways
+   through a wide shape would otherwise lose it. */
+.explore-grid .lineno {
+  width: 1px;
+  padding-right: 6px; padding-left: 6px;
+  background: color-mix(in oklab, var(--muted) 45%, transparent);
+  color: var(--muted-foreground);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+.explore-grid tbody tr > .lineno:first-child,
+.explore-grid thead tr > .lineno:first-child {
+  position: sticky; left: 0; z-index: 1;
+  background: var(--muted);
+}
+.explore-grid thead tr > .lineno:first-child {
+  background: color-mix(in oklab, var(--muted-foreground) 16%, transparent);
+}
+.explore-grid thead tr > .lineno:first-child { z-index: 3; }
+/* The columns menu sits in the middle of its corner, on the line of the
+   column titles beside it. */
+.explore-grid thead .lineno { text-align: center; }
+.explore-grid thead .lineno .funnel { height: 1lh; align-items: center; vertical-align: top; }
+/* The frame is the table's own, so the cells on the edges do not draw it
+   twice — a doubled line at the rim is what makes a rounded table look
+   like a square one with a rounded box behind it. */
+.explore-grid tr > *:last-child { border-right: 0; }
+.explore-grid tbody tr:last-child > * { border-bottom: 0; }
+
+/* The corners. The radius is one pixel short of the frame's, which is what
+   keeps the shading inside the line rather than over it. */
+.explore-grid thead tr:first-child > *:first-child { border-top-left-radius: 7px; }
+.explore-grid thead tr:first-child > *:last-child { border-top-right-radius: 7px; }
+.explore-grid tbody tr:last-child > *:first-child { border-bottom-left-radius: 7px; }
+.explore-grid tbody tr:last-child > *:last-child { border-bottom-right-radius: 7px; }
+
+.explore-grid thead th {
+  position: sticky; top: 0; z-index: 2;
+  padding: 4px 6px;
+  /* Shaded rather than the page colour, and darker than the zebra of the
+     rows beneath: a header the same weight as the striping is one more
+     stripe. */
+  background: color-mix(in oklab, var(--muted-foreground) 16%, transparent);
+  font-weight: 500; color: color-mix(in oklab, var(--foreground) 85%, transparent);
+  font-size: var(--text-xs);
+}
+/* The chips inside a grid cell lose their padding: a chip is a control on a
+   form and a value in a table, and the second one is just text with a mark
+   in front of it. */
+.explore-grid .rel-chip {
+  padding: 0; background: none; gap: 4px;
+}
+@media (hover: hover) { .explore-grid .rel-chip:hover { background: none; } }
+.explore-grid .col-head { gap: 4px; }
+.explore-grid .col-head svg { width: 13px; height: 13px; }
+.explore-grid .nullish { font-style: normal; opacity: 0.5; }
+/* A group heading names a table rather than a column, so it is darker
+   again and keeps its own capitals. */
+.explore-grid thead th.group {
+  text-transform: none; letter-spacing: 0; color: var(--foreground);
+  background: color-mix(in oklab, var(--muted-foreground) 22%, transparent);
+}
+/* The line between one level and the next. A border on every cell would
+   draw a spreadsheet; the only boundary a reader needs is where one thing
+   stops being about another. */
+.explore-grid th.edge, .explore-grid td.edge { border-left: 1px solid var(--border); }
+/* A heading is the control that sorts by it. A separate button beside the
+   name would be a second small target for the same idea. */
+.sort-by {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 0; border: 0; background: none;
+  font: inherit; color: inherit; letter-spacing: inherit;
+  text-transform: inherit;
+}
+@media (hover: hover) { .sort-by:hover { color: var(--foreground); } }
+.sort-by .arrow { font-size: 0.625rem; opacity: 0.8; }
+
+/* The funnel in a column heading: quiet until it is doing something. */
+.funnel {
+  display: inline-flex; padding: 0; border: 0; background: none;
+  color: var(--muted-foreground); opacity: 0.35;
+}
+.funnel svg { width: 13px; height: 13px; }
+@media (hover: hover) { .explore-grid th:hover .funnel { opacity: 0.7; } }
+.funnel[data-on] { opacity: 1; color: var(--brand); }
+.filter-panel { display: flex; flex-direction: column; gap: var(--space-2); width: 16rem; max-width: 100%; }
+
+/* A column's right edge, to drag: a thin line where the pointer can take it,
+   a wider area than it looks so it is easy to take. */
+.explore-grid .col-resize {
+  position: absolute; top: 0; right: -4px; bottom: 0; width: 8px; z-index: 2;
+  cursor: col-resize; touch-action: none;
+}
+.explore-grid .col-resize::after {
+  content: ""; position: absolute; top: 20%; bottom: 20%; left: 3px; width: 2px; border-radius: 1px;
+  background: transparent; transition: background 120ms;
+}
+.explore-grid th:hover > .col-resize::after, .explore-grid .col-resize:active::after { background: color-mix(in oklab, var(--brand) 60%, transparent); }
+.explore-grid th .col-head { overflow: hidden; }
+
+.explore-grid td.blank { background: color-mix(in oklab, var(--muted) 25%, transparent); }
+/* A grid is a thing people take numbers out of, so dragging across it
+   chooses cells rather than the words inside them. */
+.explore-grid tbody td { user-select: none; }
+
+/* The selection is a line around the block, not a colour inside it: a
+   background says "these cells are special", a border says "this is the
+   shape you have got" — which is what is about to be copied. Each cell
+   draws only the sides of the perimeter it lies on, and the four are
+   composed into one shadow because a second rule would replace the first
+   rather than add to it. */
+/* Drawn on the grid's own lines rather than inside the cell. A cell draws
+   its right and bottom lines and its neighbours its top and left, so a mark
+   inside it sat beside a line on some sides and beside nothing on others:
+   doubled here, thin there, different from one cell to the next. A layer a
+   pixel beyond the cell on every side lies exactly over all four lines. */
+.explore-grid tbody td:focus { outline: none; }
+.explore-grid tbody td[data-sel],
+.explore-grid tbody td:focus:not([data-sel]) { position: relative; }
+.explore-grid tbody td[data-sel]::after,
+.explore-grid tbody td:focus:not([data-sel])::after {
+  content: ""; position: absolute; inset: -1px; z-index: 1; pointer-events: none;
+  border: 0 solid var(--brand);
+}
+/* The cell somebody is on, with nothing selected: all four lines. */
+.explore-grid tbody td:focus:not([data-sel])::after { border-width: 1px; }
+/* A selection: each cell draws only the sides of the whole it lies on. */
+.explore-grid tbody td[data-sel-t]::after { border-top-width: 1px; }
+.explore-grid tbody td[data-sel-r]::after { border-right-width: 1px; }
+.explore-grid tbody td[data-sel-b]::after { border-bottom-width: 1px; }
+.explore-grid tbody td[data-sel-l]::after { border-left-width: 1px; }
+/* Zebra rows. A line of a grid this wide is read by running a finger along
+   it, and a tint that changes every row is what stops the finger sliding
+   onto the next one. The tint sits under the cells rather than on them, so
+   a cell spanning several rows keeps one colour instead of being striped
+   by the rows it covers. */
+.explore-grid tbody tr:nth-child(even) > td { background: color-mix(in oklab, var(--muted) 35%, transparent); }
+@media (hover: hover) { .explore-grid tbody tr:hover > td { background: color-mix(in oklab, var(--muted) 60%, transparent); } }
+
+/* The tick that stands where a collection’s mark stands, so the sidebar
+   keeps its shape when the question changes. */
+.pick { display: inline-flex; align-items: center; justify-content: center; width: 16px; }
+
+.table th.cols, .table td.cols { width: 1px; padding-left: 0; text-align: right; }
+/* Which of these is you. Quiet, because it is a reminder rather than a
+   label: you already know who you are, right up until you delete the row. */
+/* Which collections to take, beside what taking them produces. */
+.export-row { display: flex; gap: var(--space-4); align-items: stretch; flex-wrap: wrap; }
+/* The list and the document beside it the same height, the list scrolling in its own. */
+.export-pick {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  flex: 0 0 auto; min-width: 12rem; max-height: 24rem; overflow-y: auto;
+}
+/* A fixed window on a long document, not a document that pushes the page
+   down. A schema is thousands of lines when it is interesting, and a box
+   that grows to fit one is a page nobody can reach the bottom of. */
+.export-doc {
+  flex: 1 1 22rem;
+  height: 22rem; max-height: 60vh;
+  overflow: auto;
+  resize: vertical;
+  white-space: pre;
+}
+
+.you {
+  margin-left: var(--space-2);
+  font-size: var(--text-xs); font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+/* What to do with what is ticked.
+   Floating over the table it belongs to, centred, and above it — a bar at
+   the foot of a long page is a bar somebody has to scroll to reach after
+   ticking a row they can see. */
+.selection-bar {
+  position: sticky;
+  bottom: var(--space-4);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: max-content;
+  max-width: calc(100% - var(--space-8));
+  margin: var(--space-4) auto 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full, 999px);
+  background: var(--background);
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--foreground) 12%, transparent);
+  font-size: var(--text-sm);
+}
+
+/* ---------------------------------------------------- dialog/sheet */
+
+/* The shade and blur are the kit's (overlayClass), as every modal's are;
+   this only lays out what sits on it. */
+.overlay { display: flex; }
+
+/* A reference rather than a form: two columns of code and tables want the
+   room a single column of inputs does not. */
+.sheet.wide { width: min(980px, 100%); }
+
+/* ------------------------------------------------------- API preview */
+.api-preview { display: flex; gap: var(--space-5); align-items: flex-start; }
+.api-nav { display: flex; flex-direction: column; gap: 2px; flex: 0 0 11rem; position: sticky; top: 0; }
+.api-nav-item {
+  text-align: left; padding: var(--space-2) var(--space-3);
+  border: 0; border-radius: var(--radius-sm, 4px); background: none;
+  font: inherit; font-size: var(--text-sm); color: var(--muted-foreground);
+}
+@media (hover: hover) { .api-nav-item:hover { background: color-mix(in oklab, var(--muted) 60%, transparent); color: var(--foreground); } }
+.api-nav-item[aria-current="page"] { background: var(--muted); color: var(--foreground); font-weight: 500; }
+.api-op { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--text-sm); }
+.api-who { display: flex; align-items: center; gap: var(--space-2); color: var(--muted-foreground); }
+.api-who svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.api-who strong { color: var(--foreground); font-weight: 500; }
+.api-code { border: 1px solid var(--border); border-radius: var(--radius-md, 8px); overflow: hidden; }
+.api-code-bar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); border-bottom: 1px solid var(--border); }
+.api-code pre { margin: 0; padding: var(--space-3); overflow-x: auto; font-family: var(--mono); font-size: var(--mono-xs); line-height: 1.55; }
+/* The route, coloured by what it does to the data: reading is calm,
+   changing is warmer, removing is red. The colour is a second way of
+   saying the method, never the only one — the word is always there. */
+.api-route {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid; border-radius: var(--radius-md, 8px);
+  font-family: var(--mono); font-size: var(--mono-xs);
+}
+.api-method { font-weight: 700; padding: 1px var(--space-2); border-radius: var(--radius-sm, 4px); background: color-mix(in oklab, var(--background) 60%, transparent); }
+.api-get { border-color: hsl(212 70% 60% / 0.5); background: hsl(212 70% 60% / 0.08); }
+.api-post { border-color: hsl(150 50% 45% / 0.5); background: hsl(150 50% 45% / 0.08); }
+.api-patch { border-color: hsl(28 80% 55% / 0.5); background: hsl(28 80% 55% / 0.08); }
+.api-delete { border-color: hsl(0 70% 55% / 0.5); background: hsl(0 70% 55% / 0.08); }
+.api-h { margin: var(--space-2) 0 0; font-size: var(--text-sm); font-weight: 600; }
+.api-note { white-space: normal; max-width: none; }
+/* Narrow: the operations become a row across the top rather than a column
+   that takes half of a phone. */
+@media (max-width: 760px) {
+  .api-preview { flex-direction: column; }
+  .api-nav { flex-direction: row; flex-wrap: wrap; flex-basis: auto; position: static; }
+}
+
+.sheet {
+  margin-left: auto;
+  /* Full width on a phone; a panel beside the page where there is a page
+     left to see. */
+  width: min(560px, 100%);
+  height: 100dvh;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog {
+  margin: auto;
+  width: min(640px, 92vw);
+  max-height: 88vh;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+.panel-header .panel-title { flex: 1; min-width: 0; }
+.panel-header .btn-icon {
+  flex: 0 0 auto;
+  margin: -4px -4px -4px 0;
+  color: var(--muted-foreground);
+}
+@media (hover: hover) { .panel-header .btn-icon:hover { color: var(--foreground); } }
+
+/* An icon is sized by its own width/height, never by the inherited font
+   size, so it keeps its proportions in a button of any height. */
+.btn .icon { display: block; flex: 0 0 auto; }
+.panel-title { margin: 0; font-size: var(--text-lg); font-weight: 600; }
+.panel-body { padding: var(--space-5); overflow-y: auto; flex: 1; }
+.panel-footer {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  /* A row of actions has to wrap on a phone rather than run off the edge. */
+  flex-wrap: wrap;
+}
+/* A dialog's actions sit at the trailing edge, which is where a reader looks
+   for them once they have read the body. */
+.dialog .panel-footer { justify-content: flex-end; }
+.dialog .panel-body > :first-child { margin-top: 0; }
+.dialog .panel-body > :last-child { margin-bottom: 0; }
+
+/* ----------------------------------------------------------- toast */
+
+.toaster {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* The stack spans a corner but must not swallow clicks on the page beneath
+     it; only the toasts themselves are interactive. */
+  pointer-events: none;
+}
+.toaster > * { pointer-events: auto; }
+
+.toaster.bottom-right { bottom: max(18px, env(safe-area-inset-bottom)); right: 18px; align-items: flex-end; }
+.toaster.bottom-left { bottom: 18px; left: 18px; align-items: flex-start; }
+.toaster.bottom-center { bottom: 18px; left: 50%; transform: translateX(-50%); align-items: center; }
+.toaster.top-right { top: 18px; right: 18px; align-items: flex-end; }
+.toaster.top-left { top: 18px; left: 18px; align-items: flex-start; }
+.toaster.top-center { top: 18px; left: 50%; transform: translateX(-50%); align-items: center; }
+
+/* A toast enters from the edge it is anchored to, so the motion says where
+   the stack lives. */
+@keyframes toast-in-right { from { opacity: 0; transform: translateX(12px); } }
+@keyframes toast-in-left { from { opacity: 0; transform: translateX(-12px); } }
+@keyframes toast-in-top { from { opacity: 0; transform: translateY(-12px); } }
+@keyframes toast-in-bottom { from { opacity: 0; transform: translateY(12px); } }
+.toaster.bottom-right .toast,
+.toaster.top-right .toast { animation: toast-in-right 140ms ease-out; }
+.toaster.bottom-left .toast,
+.toaster.top-left .toast { animation: toast-in-left 140ms ease-out; }
+.toaster.top-center .toast { animation: toast-in-top 140ms ease-out; }
+.toaster.bottom-center .toast { animation: toast-in-bottom 140ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .toaster .toast { animation: none; }
+}
+
+.toast {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--destructive);
+  border-radius: calc(var(--radius) - 2px);
+  padding: var(--space-3) var(--space-4);
+  /* One width, so the close sits at the same place on every toast. */
+  width: min(380px, calc(100vw - 2 * var(--space-4)));
+  box-shadow: 0 8px 24px hsl(240 10% 3.9% / 0.16);
+}
+.toast.ok { border-left-color: var(--success); }
+.toast.warn { border-left-color: var(--warning); }
+.toast.info { border-left-color: var(--brand); }
+.toast-title { font-weight: 500; margin-bottom: 2px; }
+.toast-body { font-size: var(--text-sm); color: var(--muted-foreground); word-break: break-word; }
+
+/* ---------------------------------------------------- touch targets */
+
+/* A finger is about 9mm across. Below roughly 44px a control is a guess, so
+   anything meant to be tapped grows on a device without a mouse — rather than
+   at a width, since a tablet with a pointer does not need this. */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 38px; }
+  .btn-icon { min-width: 44px; }
+  .input, .select, .picker-trigger { min-height: 44px; }
+  .menu-item, .cal-day { min-height: 40px; }
+  .check, .nav-item { min-height: 40px; }
+  /* Looser again where a finger is doing the pointing. */
+  .table th, .table td { padding-top: var(--space-3); padding-bottom: var(--space-3); }
+}
+
+/* -------------------------------------------------------- utility */
+
+.muted { color: var(--muted-foreground); }
+.mono { font-family: var(--mono); font-size: var(--mono-sm); }
+.row { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+
+/* Fields side by side. Not `.row`, which centres its items: a field with a
+   hint is taller than one without, and centring them misaligns every label in
+   the row. Fields align on their tops, always. */
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  /* Across only: wrapped on a phone, each field's own margin is the gap
+     down; a row gap on top made it 44px there and 28px everywhere else. */
+  column-gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.form-row > * { flex: 1 1 220px; min-width: 0; }
+.grow { flex: 1; }
+.separator { height: 1px; background: var(--border); border: 0; margin: 0; }
+/* Text for a screen reader and nothing else — a name for an icon-only
+   control, or a heading a sighted reader gets from the layout.
+
+   Clipped rather than `display: none` or `visibility: hidden`, both of which
+   take the element out of the accessibility tree as well as off the screen,
+   which is the opposite of the point. The same technique keeps a focusable
+   control — a file input behind a styled button — reachable by keyboard. */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.empty { padding: var(--space-6) var(--space-5) calc(var(--space-6) * 2); text-align: center; color: var(--muted-foreground); }
+.empty h2 { margin: 0 0 var(--space-2); font-size: var(--text-base); color: var(--foreground); }
+.empty p { margin: 0 auto; max-width: 42rem; font-size: var(--text-xs); line-height: 1.6; text-wrap: pretty; }
+
+/* ------------------------------------------------------------ touch & motion
+   From Apple's Human Interface Guidelines, for every app on these tokens.
+
+   A finger is not a pointer: on a touch screen every control is at least
+   44px tall, so a row of dense desktop buttons is still hit on the first
+   try. Inputs are 16px there, which is also what stops iOS zooming the page
+   into a field. A tap is a tap at once, not after the browser waits to see
+   whether it becomes a double tap, and it does not flash grey. */
+@media (pointer: coarse) {
+  button, [role="button"], [role="menuitem"], [role="menuitemcheckbox"], [role="option"],
+  [role="tab"], [data-sidebar="menu-button"], [data-sidebar="menu-sub-button"] {
+    min-height: 44px;
+  }
+  input, textarea, select, [contenteditable="true"] { font-size: max(1rem, 16px); }
+  /* A field is tapped as a button is: as tall. Beside a 44px select, a 36px
+     input is the odd one out. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea, select { min-height: 44px; }
+  /* A round button stays round — a circle stretched to 44px tall is a
+     pill — and is hit across 44px all the same, around it. */
+  button.rounded-full:not([role]) {
+    min-height: 0;
+    position: relative;
+  }
+  button.rounded-full:not([role])::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
+  /* A square icon button stays square, and so does a folded sidebar's row
+     (an icon over a 48px rail): as tall as it is wide, hit across 44px
+     around it all the same. Stretched to 44px tall, each was a pill. */
+  button[data-size^="icon"], [data-collapsible="icon"] [data-sidebar="menu-button"] {
+    min-height: 0;
+  }
+  /* Placed for its ring only where nothing else places it: an absolute button stays absolute. */
+  :where(button[data-size^="icon"], [data-collapsible="icon"] [data-sidebar="menu-button"]) {
+    position: relative;
+  }
+  button[data-size^="icon"]::after, [data-collapsible="icon"] [data-sidebar="menu-button"]::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
+  /* A box or a switch keeps its size — a 16px square stretched to 44px tall
+     is a bar — and is hit across 44px all the same, around it. */
+  button[role="checkbox"], button[role="switch"], button[role="radio"],
+  [role="checkbox"], [role="switch"], [role="radio"] {
+    min-height: 0;
+    position: relative;
+  }
+  button[role="checkbox"]::after, button[role="radio"]::after,
+  [role="checkbox"]::after, [role="radio"]::after {
+    content: ""; position: absolute; inset: -14px;
+  }
+  button[role="switch"]::after, [role="switch"]::after {
+    content: ""; position: absolute; inset: -10px -4px;
+  }
+}
+html { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+/* Motion explains a change; somebody who has asked for less gets the change
+   without it.
+
+   Transitions are switched off, not shortened: a duration of 0.01ms turns
+   every element's default `transition: all` into a real transition, and its
+   first frame is drawn at the starting value — a tooltip placed with
+   `top: 0` and then moved showed for a frame in the page's corner.
+   Entering and leaving keep their fade and lose their movement — no slide,
+   no zoom — which is what Apple's Reduce Motion does: a tooltip or a menu
+   still eases in, it just does not travel. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-property: none !important;
+    scroll-behavior: auto !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-enter-scale: 1 !important;
+    --tw-enter-rotate: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-exit-rotate: 0 !important;
+  }
+}
+
+/* ------------------------------------------------------------ code colour
+   What `highlight` marks. Muted enough that the code still reads as text,
+   distinct enough to find the strings and the names; its own shades in the
+   dark, not the light ones inverted. */
+.hl-comment { color: var(--muted-foreground); font-style: italic; }
+.hl-string { color: hsl(142 45% 30%); }
+.hl-keyword { color: hsl(262 45% 45%); }
+.hl-number, .hl-url { color: hsl(24 70% 40%); }
+.hl-call { color: hsl(210 60% 38%); }
+.hl-flag { color: hsl(262 45% 45%); }
+.hl-punct { color: var(--muted-foreground); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hl-string { color: hsl(142 45% 65%); }
+  :root:not([data-theme="light"]) .hl-keyword, :root:not([data-theme="light"]) .hl-flag { color: hsl(262 70% 78%); }
+  :root:not([data-theme="light"]) .hl-number, :root:not([data-theme="light"]) .hl-url { color: hsl(28 80% 68%); }
+  :root:not([data-theme="light"]) .hl-call { color: hsl(210 80% 72%); }
+}
+:root[data-theme="dark"] .hl-string { color: hsl(142 45% 65%); }
+:root[data-theme="dark"] .hl-keyword, :root[data-theme="dark"] .hl-flag { color: hsl(262 70% 78%); }
+:root[data-theme="dark"] .hl-number, :root[data-theme="dark"] .hl-url { color: hsl(28 80% 68%); }
+:root[data-theme="dark"] .hl-call { color: hsl(210 80% 72%); }
+
+/* A file's code: numbers in a quiet column, the code beside them, one
+   scroll for both so a line and its number never part. */
+.code-view {
+  display: grid; grid-template-columns: auto 1fr; overflow: auto; max-height: 28rem;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--background);
+  font-family: var(--mono); font-size: var(--mono-xs); line-height: 1.6;
+}
+.code-view pre { margin: 0; padding: var(--space-3) var(--space-4); font: inherit; white-space: pre; }
+.code-gutter {
+  position: sticky; left: 0; text-align: right; user-select: none;
+  color: color-mix(in oklab, var(--muted-foreground) 70%, transparent); background: color-mix(in oklab, var(--muted) 50%, transparent);
+  border-right: 1px solid var(--border); padding-inline: var(--space-3) !important;
+}
+
+/* Menus and popovers are pressed, not read: dragging across one does not
+   select its labels, as a native menu's are not. What is typed in or meant
+   to be copied — a field, some code — still selects. */
+[role="menu"], [role="menubar"], [role="listbox"], [role="tooltip"], [data-slot="popover-content"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+[data-slot="popover-content"] :is(input, textarea, [contenteditable="true"], [contenteditable="plaintext-only"], pre, code) {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ------------------------------------------------------- palettes
+   Chosen in Settings, kept per browser, set as data-palette on the root
+   before the page draws (index.html). Each has its own dark steps, not
+   the light ones inverted. No palette: the neutral default above. */
+:root[data-palette="warm"] {
+  --background: hsl(48 33% 98%);
+  --foreground: hsl(60 3% 12%);
+  --card: hsl(48 33% 99%);
+  --popover: hsl(48 33% 99%);
+  --primary: hsl(60 3% 12%);
+  --secondary: hsl(45 18% 93%);
+  --muted: hsl(45 18% 94%);
+  --muted-foreground: hsl(50 4% 40%);
+  --accent: hsl(45 18% 92%);
+  --border: hsl(45 14% 88%);
+  --input: hsl(45 14% 86%);
+  --ring: hsl(15 45% 60%);
+  --sidebar: hsl(45 22% 96%);
+  --sidebar-accent: hsl(45 18% 91%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(45 14% 88%);
+  --brand: hsl(15 55% 52%);
+  --card-foreground: hsl(60 3% 12%);
+  --popover-foreground: hsl(60 3% 12%);
+  --secondary-foreground: hsl(60 3% 12%);
+  --accent-foreground: hsl(60 3% 12%);
+  --sidebar-foreground: hsl(60 3% 12%);
+  --sidebar-accent-foreground: hsl(60 3% 12%);
+  --sidebar-ring: hsl(15 45% 60%);
+  --primary-foreground: hsl(0 0% 99%);
+}
+:root[data-palette="warm"][data-theme="dark"] {
+  --background: hsl(40 6% 10%);
+  --foreground: hsl(45 20% 93%);
+  --card: hsl(40 6% 13%);
+  --popover: hsl(40 6% 13%);
+  --primary: hsl(45 20% 90%);
+  --secondary: hsl(40 5% 18%);
+  --muted: hsl(40 5% 17%);
+  --muted-foreground: hsl(45 6% 62%);
+  --accent: hsl(40 5% 20%);
+  --border: hsl(40 5% 21%);
+  --input: hsl(40 5% 24%);
+  --ring: hsl(15 45% 55%);
+  --sidebar: hsl(40 6% 8%);
+  --sidebar-accent: hsl(40 5% 17%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(40 5% 18%);
+  --brand: hsl(15 60% 62%);
+  --card-foreground: hsl(45 20% 93%);
+  --popover-foreground: hsl(45 20% 93%);
+  --secondary-foreground: hsl(45 20% 93%);
+  --accent-foreground: hsl(45 20% 93%);
+  --sidebar-foreground: hsl(45 20% 93%);
+  --sidebar-accent-foreground: hsl(45 20% 93%);
+  --sidebar-ring: hsl(15 45% 55%);
+  --primary-foreground: hsl(40 6% 10%);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="warm"]:not([data-theme="light"]) {
+    --background: hsl(40 6% 10%);
+    --foreground: hsl(45 20% 93%);
+    --card: hsl(40 6% 13%);
+    --popover: hsl(40 6% 13%);
+    --primary: hsl(45 20% 90%);
+    --secondary: hsl(40 5% 18%);
+    --muted: hsl(40 5% 17%);
+    --muted-foreground: hsl(45 6% 62%);
+    --accent: hsl(40 5% 20%);
+    --border: hsl(40 5% 21%);
+    --input: hsl(40 5% 24%);
+    --ring: hsl(15 45% 55%);
+    --sidebar: hsl(40 6% 8%);
+    --sidebar-accent: hsl(40 5% 17%);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-border: hsl(40 5% 18%);
+    --brand: hsl(15 60% 62%);
+    --card-foreground: hsl(45 20% 93%);
+    --popover-foreground: hsl(45 20% 93%);
+    --secondary-foreground: hsl(45 20% 93%);
+    --accent-foreground: hsl(45 20% 93%);
+    --sidebar-foreground: hsl(45 20% 93%);
+    --sidebar-accent-foreground: hsl(45 20% 93%);
+    --sidebar-ring: hsl(15 45% 55%);
+    --primary-foreground: hsl(40 6% 10%);
+  }
+}
+/* Clay: claude.ai's settings colours — paper greys only just warm, a clear
+   blue for the brand and the focus ring (as its usage bars), near-black
+   actions, borders as ink at low opacity. */
+:root[data-palette="clay"] {
+  --background: hsl(50 20% 99%);
+  --foreground: hsl(60 2.6% 7.6%);
+  --card: hsl(0 0% 100%);
+  --popover: hsl(0 0% 100%);
+  --primary: hsl(60 2.6% 7.6%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(50 14% 95%);
+  --muted: hsl(50 14% 95%);
+  --muted-foreground: hsl(51 3.1% 40%);
+  --accent: hsl(50 8% 91%);
+  --border: hsl(30 3.3% 11.8% / 0.15);
+  --input: hsl(30 3.3% 11.8% / 0.2);
+  --ring: hsl(215 70% 52%);
+  --destructive: hsl(0 56.2% 45.4%);
+  --sidebar: hsl(50 20% 96%);
+  --sidebar-accent: hsl(50 7% 89%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(30 3.3% 11.8% / 0.1);
+  --brand: hsl(215 70% 50%);
+  --card-foreground: hsl(60 2.6% 7.6%);
+  --popover-foreground: hsl(60 2.6% 7.6%);
+  --secondary-foreground: hsl(60 2.5% 23.3%);
+  --accent-foreground: hsl(60 2.6% 7.6%);
+  --sidebar-foreground: hsl(60 2.5% 23.3%);
+  --sidebar-accent-foreground: hsl(60 2.6% 7.6%);
+  --sidebar-ring: hsl(215 70% 52%);
+}
+:root[data-palette="clay"][data-theme="dark"] {
+  --background: hsl(60 2.7% 14.5%);
+  --foreground: hsl(48 33.3% 97.1%);
+  --card: hsl(60 2.1% 18.4%);
+  --popover: hsl(60 2.1% 18.4%);
+  --primary: hsl(48 33.3% 97.1%);
+  --primary-foreground: hsl(60 2.6% 7.6%);
+  --secondary: hsl(60 2.1% 18.4%);
+  --muted: hsl(30 3.3% 11.8%);
+  --muted-foreground: hsl(48 4.8% 59.2%);
+  --accent: hsl(60 2.1% 21%);
+  --border: hsl(51 16.5% 84.5% / 0.15);
+  --input: hsl(51 16.5% 84.5% / 0.2);
+  --ring: hsl(215 80% 64%);
+  --destructive: hsl(0 67% 59.6%);
+  --sidebar: hsl(30 3.3% 11.8%);
+  --sidebar-accent: hsl(60 2.1% 18.4%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(51 16.5% 84.5% / 0.1);
+  --brand: hsl(215 80% 64%);
+  --card-foreground: hsl(48 33.3% 97.1%);
+  --popover-foreground: hsl(48 33.3% 97.1%);
+  --secondary-foreground: hsl(50 9% 73.7%);
+  --accent-foreground: hsl(48 33.3% 97.1%);
+  --sidebar-foreground: hsl(50 9% 73.7%);
+  --sidebar-accent-foreground: hsl(48 33.3% 97.1%);
+  --sidebar-ring: hsl(215 80% 64%);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="clay"]:not([data-theme="light"]) {
+    --background: hsl(60 2.7% 14.5%);
+    --foreground: hsl(48 33.3% 97.1%);
+    --card: hsl(60 2.1% 18.4%);
+    --popover: hsl(60 2.1% 18.4%);
+    --primary: hsl(48 33.3% 97.1%);
+    --primary-foreground: hsl(60 2.6% 7.6%);
+    --secondary: hsl(60 2.1% 18.4%);
+    --muted: hsl(30 3.3% 11.8%);
+    --muted-foreground: hsl(48 4.8% 59.2%);
+    --accent: hsl(60 2.1% 21%);
+    --border: hsl(51 16.5% 84.5% / 0.15);
+    --input: hsl(51 16.5% 84.5% / 0.2);
+    --ring: hsl(215 80% 64%);
+    --destructive: hsl(0 67% 59.6%);
+    --sidebar: hsl(30 3.3% 11.8%);
+    --sidebar-accent: hsl(60 2.1% 18.4%);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-border: hsl(51 16.5% 84.5% / 0.1);
+    --brand: hsl(215 80% 64%);
+    --card-foreground: hsl(48 33.3% 97.1%);
+    --popover-foreground: hsl(48 33.3% 97.1%);
+    --secondary-foreground: hsl(50 9% 73.7%);
+    --accent-foreground: hsl(48 33.3% 97.1%);
+    --sidebar-foreground: hsl(50 9% 73.7%);
+    --sidebar-accent-foreground: hsl(48 33.3% 97.1%);
+    --sidebar-ring: hsl(215 80% 64%);
+  }
+}
+:root[data-palette="slate"] {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(222 47% 11%);
+  --card: hsl(0 0% 100%);
+  --popover: hsl(0 0% 100%);
+  --primary: hsl(222 47% 17%);
+  --secondary: hsl(210 40% 96%);
+  --muted: hsl(210 40% 96%);
+  --muted-foreground: hsl(215 16% 45%);
+  --accent: hsl(210 40% 95%);
+  --border: hsl(214 32% 90%);
+  --input: hsl(214 32% 88%);
+  --ring: hsl(221 70% 60%);
+  --sidebar: hsl(210 40% 98%);
+  --sidebar-accent: hsl(214 32% 93%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(214 32% 90%);
+  --brand: hsl(221 83% 53%);
+  --card-foreground: hsl(222 47% 11%);
+  --popover-foreground: hsl(222 47% 11%);
+  --secondary-foreground: hsl(222 47% 17%);
+  --accent-foreground: hsl(222 47% 11%);
+  --sidebar-foreground: hsl(222 47% 11%);
+  --sidebar-accent-foreground: hsl(222 47% 11%);
+  --sidebar-ring: hsl(221 70% 60%);
+  --primary-foreground: hsl(0 0% 99%);
+}
+:root[data-palette="slate"][data-theme="dark"] {
+  --background: hsl(222 47% 7%);
+  --foreground: hsl(210 40% 96%);
+  --card: hsl(222 40% 10%);
+  --popover: hsl(222 40% 10%);
+  --primary: hsl(210 40% 92%);
+  --secondary: hsl(217 33% 17%);
+  --muted: hsl(217 33% 15%);
+  --muted-foreground: hsl(215 20% 65%);
+  --accent: hsl(217 33% 18%);
+  --border: hsl(217 33% 18%);
+  --input: hsl(217 33% 22%);
+  --ring: hsl(221 70% 60%);
+  --sidebar: hsl(222 47% 5%);
+  --sidebar-accent: hsl(217 33% 15%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(217 33% 15%);
+  --brand: hsl(217 91% 65%);
+  --card-foreground: hsl(210 40% 96%);
+  --popover-foreground: hsl(210 40% 96%);
+  --secondary-foreground: hsl(210 40% 96%);
+  --accent-foreground: hsl(210 40% 96%);
+  --sidebar-foreground: hsl(210 40% 96%);
+  --sidebar-accent-foreground: hsl(210 40% 96%);
+  --sidebar-ring: hsl(221 70% 60%);
+  --primary-foreground: hsl(222 47% 7%);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="slate"]:not([data-theme="light"]) {
+    --background: hsl(222 47% 7%);
+    --foreground: hsl(210 40% 96%);
+    --card: hsl(222 40% 10%);
+    --popover: hsl(222 40% 10%);
+    --primary: hsl(210 40% 92%);
+    --secondary: hsl(217 33% 17%);
+    --muted: hsl(217 33% 15%);
+    --muted-foreground: hsl(215 20% 65%);
+    --accent: hsl(217 33% 18%);
+    --border: hsl(217 33% 18%);
+    --input: hsl(217 33% 22%);
+    --ring: hsl(221 70% 60%);
+    --sidebar: hsl(222 47% 5%);
+    --sidebar-accent: hsl(217 33% 15%);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-border: hsl(217 33% 15%);
+    --brand: hsl(217 91% 65%);
+    --card-foreground: hsl(210 40% 96%);
+    --popover-foreground: hsl(210 40% 96%);
+    --secondary-foreground: hsl(210 40% 96%);
+    --accent-foreground: hsl(210 40% 96%);
+    --sidebar-foreground: hsl(210 40% 96%);
+    --sidebar-accent-foreground: hsl(210 40% 96%);
+    --sidebar-ring: hsl(221 70% 60%);
+    --primary-foreground: hsl(222 47% 7%);
+  }
+}
+:root[data-palette="forest"] {
+  --background: hsl(90 20% 98%);
+  --foreground: hsl(150 25% 10%);
+  --card: hsl(90 20% 99%);
+  --popover: hsl(90 20% 99%);
+  --primary: hsl(152 45% 24%);
+  --secondary: hsl(100 15% 93%);
+  --muted: hsl(100 15% 94%);
+  --muted-foreground: hsl(120 6% 42%);
+  --accent: hsl(100 15% 92%);
+  --border: hsl(100 12% 87%);
+  --input: hsl(100 12% 85%);
+  --ring: hsl(152 40% 45%);
+  --sidebar: hsl(100 18% 96%);
+  --sidebar-accent: hsl(100 15% 91%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(100 12% 87%);
+  --brand: hsl(152 50% 32%);
+  --card-foreground: hsl(150 25% 10%);
+  --popover-foreground: hsl(150 25% 10%);
+  --secondary-foreground: hsl(152 45% 24%);
+  --accent-foreground: hsl(150 25% 10%);
+  --sidebar-foreground: hsl(150 25% 10%);
+  --sidebar-accent-foreground: hsl(150 25% 10%);
+  --sidebar-ring: hsl(152 40% 45%);
+  --primary-foreground: hsl(0 0% 99%);
+}
+:root[data-palette="forest"][data-theme="dark"] {
+  --background: hsl(150 15% 8%);
+  --foreground: hsl(100 15% 92%);
+  --card: hsl(150 14% 11%);
+  --popover: hsl(150 14% 11%);
+  --primary: hsl(140 40% 70%);
+  --secondary: hsl(150 10% 16%);
+  --muted: hsl(150 10% 15%);
+  --muted-foreground: hsl(120 6% 62%);
+  --accent: hsl(150 10% 18%);
+  --border: hsl(150 10% 18%);
+  --input: hsl(150 10% 22%);
+  --ring: hsl(152 40% 50%);
+  --sidebar: hsl(150 15% 6%);
+  --sidebar-accent: hsl(150 10% 15%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(150 10% 15%);
+  --brand: hsl(150 45% 55%);
+  --card-foreground: hsl(100 15% 92%);
+  --popover-foreground: hsl(100 15% 92%);
+  --secondary-foreground: hsl(100 15% 92%);
+  --accent-foreground: hsl(100 15% 92%);
+  --sidebar-foreground: hsl(100 15% 92%);
+  --sidebar-accent-foreground: hsl(100 15% 92%);
+  --sidebar-ring: hsl(152 40% 50%);
+  --primary-foreground: hsl(150 15% 8%);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="forest"]:not([data-theme="light"]) {
+    --background: hsl(150 15% 8%);
+    --foreground: hsl(100 15% 92%);
+    --card: hsl(150 14% 11%);
+    --popover: hsl(150 14% 11%);
+    --primary: hsl(140 40% 70%);
+    --secondary: hsl(150 10% 16%);
+    --muted: hsl(150 10% 15%);
+    --muted-foreground: hsl(120 6% 62%);
+    --accent: hsl(150 10% 18%);
+    --border: hsl(150 10% 18%);
+    --input: hsl(150 10% 22%);
+    --ring: hsl(152 40% 50%);
+    --sidebar: hsl(150 15% 6%);
+    --sidebar-accent: hsl(150 10% 15%);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-border: hsl(150 10% 15%);
+    --brand: hsl(150 45% 55%);
+    --card-foreground: hsl(100 15% 92%);
+    --popover-foreground: hsl(100 15% 92%);
+    --secondary-foreground: hsl(100 15% 92%);
+    --accent-foreground: hsl(100 15% 92%);
+    --sidebar-foreground: hsl(100 15% 92%);
+    --sidebar-accent-foreground: hsl(100 15% 92%);
+    --sidebar-ring: hsl(152 40% 50%);
+    --primary-foreground: hsl(150 15% 8%);
+  }
+}
+:root[data-palette="plum"] {
+  --background: hsl(270 20% 99%);
+  --foreground: hsl(270 30% 10%);
+  --card: hsl(0 0% 100%);
+  --popover: hsl(0 0% 100%);
+  --primary: hsl(270 40% 32%);
+  --secondary: hsl(270 20% 95%);
+  --muted: hsl(270 20% 96%);
+  --muted-foreground: hsl(270 6% 45%);
+  --accent: hsl(270 20% 94%);
+  --border: hsl(270 15% 90%);
+  --input: hsl(270 15% 88%);
+  --ring: hsl(270 45% 60%);
+  --sidebar: hsl(270 25% 97%);
+  --sidebar-accent: hsl(270 20% 93%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(270 15% 90%);
+  --brand: hsl(270 50% 50%);
+  --card-foreground: hsl(270 30% 10%);
+  --popover-foreground: hsl(270 30% 10%);
+  --secondary-foreground: hsl(270 40% 32%);
+  --accent-foreground: hsl(270 30% 10%);
+  --sidebar-foreground: hsl(270 30% 10%);
+  --sidebar-accent-foreground: hsl(270 30% 10%);
+  --sidebar-ring: hsl(270 45% 60%);
+  --primary-foreground: hsl(0 0% 99%);
+}
+:root[data-palette="plum"][data-theme="dark"] {
+  --background: hsl(270 20% 8%);
+  --foreground: hsl(270 20% 95%);
+  --card: hsl(270 18% 11%);
+  --popover: hsl(270 18% 11%);
+  --primary: hsl(270 60% 80%);
+  --secondary: hsl(270 14% 17%);
+  --muted: hsl(270 14% 15%);
+  --muted-foreground: hsl(270 8% 65%);
+  --accent: hsl(270 14% 19%);
+  --border: hsl(270 14% 19%);
+  --input: hsl(270 14% 23%);
+  --ring: hsl(270 50% 65%);
+  --sidebar: hsl(270 20% 6%);
+  --sidebar-accent: hsl(270 14% 15%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: hsl(270 14% 15%);
+  --brand: hsl(270 60% 70%);
+  --card-foreground: hsl(270 20% 95%);
+  --popover-foreground: hsl(270 20% 95%);
+  --secondary-foreground: hsl(270 20% 95%);
+  --accent-foreground: hsl(270 20% 95%);
+  --sidebar-foreground: hsl(270 20% 95%);
+  --sidebar-accent-foreground: hsl(270 20% 95%);
+  --sidebar-ring: hsl(270 50% 65%);
+  --primary-foreground: hsl(270 20% 8%);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="plum"]:not([data-theme="light"]) {
+    --background: hsl(270 20% 8%);
+    --foreground: hsl(270 20% 95%);
+    --card: hsl(270 18% 11%);
+    --popover: hsl(270 18% 11%);
+    --primary: hsl(270 60% 80%);
+    --secondary: hsl(270 14% 17%);
+    --muted: hsl(270 14% 15%);
+    --muted-foreground: hsl(270 8% 65%);
+    --accent: hsl(270 14% 19%);
+    --border: hsl(270 14% 19%);
+    --input: hsl(270 14% 23%);
+    --ring: hsl(270 50% 65%);
+    --sidebar: hsl(270 20% 6%);
+    --sidebar-accent: hsl(270 14% 15%);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-border: hsl(270 14% 15%);
+    --brand: hsl(270 60% 70%);
+    --card-foreground: hsl(270 20% 95%);
+    --popover-foreground: hsl(270 20% 95%);
+    --secondary-foreground: hsl(270 20% 95%);
+    --accent-foreground: hsl(270 20% 95%);
+    --sidebar-foreground: hsl(270 20% 95%);
+    --sidebar-accent-foreground: hsl(270 20% 95%);
+    --sidebar-ring: hsl(270 50% 65%);
+    --primary-foreground: hsl(270 20% 8%);
+  }
+}
+
+/* Headings set a little tighter than text, as Geist wants at larger sizes. */
+h1, h2, h3, .panel-title { letter-spacing: -0.015em; }
+
+/* The sidebar's way into Ctrl+K: a search box to look at, a button to use. */
+.palette-button {
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 32px; padding: 0 6px 0 8px;
+  border: 1px solid var(--border); border-radius: var(--radius-md, 8px);
+  background: var(--background); color: var(--muted-foreground); font-size: 13px;
+}
+@media (hover: hover) { .palette-button:hover { color: var(--foreground); } }
+.palette-button > svg { width: 14px; height: 14px; flex: 0 0 auto; }
+
+/* A search box's clear button: the kit's x, drawn in the text's muted colour, not the browser's own glyph. */
+input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-inline-start: 6px;
+  /* Nearer the edge than the field's padding puts it: as far in as the words are from the other side. */
+  margin-inline-end: -4px;
+  cursor: default;
+  background-color: var(--muted-foreground);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+@media (hover: hover) { input[type="search"]::-webkit-search-cancel-button:hover { background-color: var(--foreground); } }
+
+/* A screen's header: its controls are one height on every screen, the
+   sidebar row's (32px). The kit's default buttons and inputs are 36, and a
+   header of 36s beside a Logs header of 32s was the same bar at two sizes. */
+header.bar :is(button, input, [role="tablist"]).h-9 { height: 2rem; }
+header.bar button.size-9 { width: 2rem; height: 2rem; }
+header.bar [role="tablist"].h-9 > [role="tab"] { height: 100%; }
+/* On a phone a header's tab strip, or a block of controls that wraps, is a
+   row of its own under the title, as a search is: beside the title the tabs
+   ran off the screen and Logs' filters were squeezed into a column. */
+@media (max-width: 639px) {
+  header.bar > div:not(.grow):is(:has(> [role="tablist"]), .flex-wrap) { flex-basis: 100%; }
+}
+
+/* A header with a subtitle is as tall as one without (60px): the title's
+   leading 21px, the subtitle's 14px. Jobs, SQL, API and Translations stood
+   8px taller than every other screen, and the bar jumped between them. */
+header.bar > div:not(.grow):has(> .hint) > h1 { line-height: 21px; }
+header.bar > div:not(.grow) > .hint { line-height: 14px; }
+
+/* Menus and pickers, all of them, in the admin: one smaller size, as MikroSchool's read. */
+[role="menu"] [data-item],
+[role="menu"] [role="menuitem"],
+[role="menu"] [role="menuitemcheckbox"],
+[role="menu"] [role="menuitemradio"],
+[role="listbox"] [role="option"] {
+  font-size: 12px;
+}
+/* Menu rows closer together (options keep theirs: some carry a second line). */
+[role="menu"] [data-item] { min-height: 28px; height: auto; }
+
+/* Text and number fields in a list of settings (the Storyboard's props): no border, a soft fill instead. */
+[data-fields-flat] input:not([type="color"]):not([type="checkbox"]):not([type="radio"]),
+[data-fields-flat] textarea:not([data-code]) {
+  border-color: transparent !important;
+  background-color: color-mix(in oklab, var(--muted) 70%, transparent) !important;
+  box-shadow: none !important;
+}
+[data-fields-flat] input:focus-visible { border-color: var(--ring) !important; }
+/* A number field's steppers: no line between them and the number. */
+[data-fields-flat] .border-l { border-left-color: transparent !important; }
+[data-fields-flat] .bg-input { background-color: transparent !important; }
+
+/* Inter (OFL), as Blender draws its panels: the Storyboard's props, labels and values. */
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/inter-latin-400.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/inter-latin-ext-400.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/inter-latin-ext-500.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/inter-latin-600.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/inter-latin-ext-600.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/inter-latin-700.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/inter-latin-ext-700.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/inter-latin-500.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* Labels and values in Blender's manner: Inter, small, a soft dark shadow under the letters. */
+[data-fields-flat] label,
+[data-fields-flat] input,
+[data-fields-flat] [role="combobox"],
+[data-fields-flat] [role="radio"] {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  font-size: 12px !important;
+}
+/* The shadow on dark only, as Blender's is: on light it smudges. */
+:root[data-theme="dark"] [data-fields-flat] :is(label, input, [role="combobox"], [role="radio"]) { text-shadow: 0 1px 1px rgb(0 0 0 / 0.45); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) [data-fields-flat] :is(label, input, [role="combobox"], [role="radio"]) { text-shadow: 0 1px 1px rgb(0 0 0 / 0.45); }
+}
+
+/* Sliders in a list of settings: a smaller thumb, a thinner bar. */
+[data-fields-flat] .group\/slider [role="slider"] { width: 12px !important; height: 12px !important; }
+[data-fields-flat] .group\/slider > span:first-child { height: 3px !important; }
+/* The dropdowns as the fields beside them: no border, the same soft fill. */
+[data-fields-flat] button[role="combobox"] {
+  border-color: transparent !important;
+  background-color: color-mix(in oklab, var(--muted) 70%, transparent) !important;
+  box-shadow: none !important;
+}
+[data-fields-flat] button[role="combobox"] { height: 24px !important; min-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+/* List options closer together: less room above and below (a second line still has its room). */
+[role="listbox"] [role="option"] { padding-top: 4px !important; padding-bottom: 4px !important; min-height: 0 !important; }
+
+/* ---------------------------------------------------------------- scroll-fade
+   A scroller's edges fade where there is more to scroll to: crisp at the start,
+   the far edge faded; both faded mid-way; the far edge crisp at the end. The
+   content itself dissolves (a mask), so it suits any background. On the element
+   that scrolls. Sizes: --scroll-fade-size (all edges), --scroll-fade-t-size,
+   -b-, -s-, -e-. Ported from shadcn/ui's scroll-fade (MIT, © shadcn). */
+@property --scroll-fade-t { syntax: "<length-percentage>"; inherits: false; initial-value: 0px; }
+@property --scroll-fade-b { syntax: "<length-percentage>"; inherits: false; initial-value: 0px; }
+@property --scroll-fade-s { syntax: "<length-percentage>"; inherits: false; initial-value: 0px; }
+@property --scroll-fade-e { syntax: "<length-percentage>"; inherits: false; initial-value: 0px; }
+@property --scroll-fade-mask { syntax: "*"; inherits: false; }
+@keyframes scroll-fade-reveal-t { from { --scroll-fade-t: 0px; } to { --scroll-fade-t: var(--_sf-t); } }
+@keyframes scroll-fade-reveal-b { from { --scroll-fade-b: var(--_sf-b); } to { --scroll-fade-b: 0px; } }
+@keyframes scroll-fade-reveal-s { from { --scroll-fade-s: 0px; } to { --scroll-fade-s: var(--_sf-s); } }
+@keyframes scroll-fade-reveal-e { from { --scroll-fade-e: var(--_sf-e); } to { --scroll-fade-e: 0px; } }
+:where(.scroll-fade, .scroll-fade-y, .scroll-fade-x, .scroll-fade-t, .scroll-fade-b, .scroll-fade-l, .scroll-fade-r, .scroll-fade-s, .scroll-fade-e) {
+  --_sf-t: var(--scroll-fade-t-size, var(--scroll-fade-size, min(12%, 2.5rem)));
+  --_sf-b: var(--scroll-fade-b-size, var(--scroll-fade-size, min(12%, 2.5rem)));
+  --_sf-s: var(--scroll-fade-s-size, var(--scroll-fade-size, min(12%, 2.5rem)));
+  --_sf-e: var(--scroll-fade-e-size, var(--scroll-fade-size, min(12%, 2.5rem)));
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  animation-fill-mode: both;
+}
+:where(.scroll-fade, .scroll-fade-y) {
+  --scroll-fade-block: linear-gradient(to bottom, transparent 0, #000 var(--scroll-fade-t, 0px), #000 calc(100% - var(--scroll-fade-b, 0px)), transparent 100%);
+  -webkit-mask-image: var(--scroll-fade-mask, var(--scroll-fade-block)); mask-image: var(--scroll-fade-mask, var(--scroll-fade-block));
+}
+.scroll-fade-x {
+  --scroll-fade-inline: linear-gradient(to right, transparent 0, #000 var(--scroll-fade-s, 0px), #000 calc(100% - var(--scroll-fade-e, 0px)), transparent 100%);
+  -webkit-mask-image: var(--scroll-fade-mask, var(--scroll-fade-inline)); mask-image: var(--scroll-fade-mask, var(--scroll-fade-inline));
+}
+.scroll-fade-x:where([dir="rtl"], [dir="rtl"] *) { --scroll-fade-inline: linear-gradient(to left, transparent 0, #000 var(--scroll-fade-s, 0px), #000 calc(100% - var(--scroll-fade-e, 0px)), transparent 100%); }
+.scroll-fade-t { --scroll-fade-mask: linear-gradient(to bottom, transparent 0, #000 var(--scroll-fade-t, 0px), #000 100%); }
+.scroll-fade-b { --scroll-fade-mask: linear-gradient(to bottom, #000 0, #000 calc(100% - var(--scroll-fade-b, 0px)), transparent 100%); }
+.scroll-fade-l, .scroll-fade-s { --scroll-fade-mask: linear-gradient(to right, transparent 0, #000 var(--scroll-fade-s, 0px), #000 100%); }
+.scroll-fade-r, .scroll-fade-e { --scroll-fade-mask: linear-gradient(to right, #000 0, #000 calc(100% - var(--scroll-fade-e, 0px)), transparent 100%); }
+.scroll-fade-s:where([dir="rtl"], [dir="rtl"] *) { --scroll-fade-mask: linear-gradient(to left, transparent 0, #000 var(--scroll-fade-s, 0px), #000 100%); }
+.scroll-fade-e:where([dir="rtl"], [dir="rtl"] *) { --scroll-fade-mask: linear-gradient(to left, #000 0, #000 calc(100% - var(--scroll-fade-e, 0px)), transparent 100%); }
+:where(.scroll-fade-t, .scroll-fade-b, .scroll-fade-l, .scroll-fade-r, .scroll-fade-s, .scroll-fade-e) { -webkit-mask-image: var(--scroll-fade-mask); mask-image: var(--scroll-fade-mask); }
+.scroll-fade-none { --scroll-fade-mask: none; }
+@supports (animation-timeline: scroll()) {
+  :where(.scroll-fade, .scroll-fade-y) {
+    animation: scroll-fade-reveal-t 1ms ease-in-out, scroll-fade-reveal-b 1ms ease-in-out;
+    animation-timeline: scroll(self y), scroll(self y);
+    animation-range: 0 var(--scroll-fade-reveal, 6rem), calc(100% - var(--scroll-fade-reveal, 6rem)) 100%;
+    animation-fill-mode: both;
+  }
+  .scroll-fade-x {
+    animation: scroll-fade-reveal-s 1ms ease-in-out, scroll-fade-reveal-e 1ms ease-in-out;
+    animation-timeline: scroll(self inline), scroll(self inline);
+    animation-range: 0 var(--scroll-fade-reveal, 6rem), calc(100% - var(--scroll-fade-reveal, 6rem)) 100%;
+    animation-fill-mode: both;
+  }
+  .scroll-fade-t { animation: scroll-fade-reveal-t 1ms ease-in-out both; animation-timeline: scroll(self y); animation-range: 0 var(--scroll-fade-reveal, 6rem); }
+  .scroll-fade-b { animation: scroll-fade-reveal-b 1ms ease-in-out both; animation-timeline: scroll(self y); animation-range: calc(100% - var(--scroll-fade-reveal, 6rem)) 100%; }
+  .scroll-fade-l { animation: scroll-fade-reveal-s 1ms ease-in-out both; animation-timeline: scroll(self x); animation-range: 0 var(--scroll-fade-reveal, 6rem); }
+  .scroll-fade-r { animation: scroll-fade-reveal-e 1ms ease-in-out both; animation-timeline: scroll(self x); animation-range: calc(100% - var(--scroll-fade-reveal, 6rem)) 100%; }
+  .scroll-fade-s { animation: scroll-fade-reveal-s 1ms ease-in-out both; animation-timeline: scroll(self inline); animation-range: 0 var(--scroll-fade-reveal, 6rem); }
+  .scroll-fade-e { animation: scroll-fade-reveal-e 1ms ease-in-out both; animation-timeline: scroll(self inline); animation-range: calc(100% - var(--scroll-fade-reveal, 6rem)) 100%; }
+}
+@supports not (animation-timeline: scroll()) {
+  :where(.scroll-fade, .scroll-fade-y, .scroll-fade-t) { --scroll-fade-t: var(--_sf-t); }
+  :where(.scroll-fade, .scroll-fade-y, .scroll-fade-b) { --scroll-fade-b: var(--_sf-b); }
+  :where(.scroll-fade-x, .scroll-fade-l, .scroll-fade-s) { --scroll-fade-s: var(--_sf-s); }
+  :where(.scroll-fade-x, .scroll-fade-r, .scroll-fade-e) { --scroll-fade-e: var(--_sf-e); }
+}
+
+/* -------------------------------------------------------------------- shimmer
+   A light sweeping across words, from their own colour: "Generating…". Set
+   --shimmer-color, --shimmer-duration, --shimmer-spread or --shimmer-angle to
+   change it; shimmer-once, shimmer-reverse, shimmer-none. Stills for reduced
+   motion. Ported from shadcn/ui's shimmer (MIT, © shadcn). */
+@property --shimmer-angle { syntax: "<angle>"; inherits: true; initial-value: 20deg; }
+@property --shimmer-image { syntax: "*"; inherits: false; }
+@property --shimmer-text-fill { syntax: "*"; inherits: false; }
+@keyframes tw-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.shimmer {
+  --_spread: var(--shimmer-spread, calc(3ch + 40px));
+  --_base: currentColor;
+  --_highlight: var(--shimmer-color, oklch(from currentColor l c h / calc(alpha * 0.2)));
+  background-image: var(--shimmer-image, linear-gradient(calc(90deg + var(--shimmer-angle)),
+    var(--_base) calc(50% - var(--_spread)),
+    color-mix(in oklch, var(--_highlight), var(--_base) 50%) calc(50% - var(--_spread) * 0.5),
+    var(--_highlight) 50%,
+    color-mix(in oklch, var(--_highlight), var(--_base) 50%) calc(50% + var(--_spread) * 0.5),
+    var(--_base) calc(50% + var(--_spread))));
+  background-repeat: no-repeat;
+  background-size: calc(200% + var(--_spread) * 2) 100%;
+  background-position: 0 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: var(--shimmer-text-fill, transparent);
+  animation: tw-shimmer var(--shimmer-duration, 2s) linear infinite;
+}
+.dark .shimmer, [data-theme="dark"] .shimmer { --_highlight: var(--shimmer-color, oklch(from currentColor max(0.8, calc(l + 0.4)) c h / calc(alpha + 0.4))); }
+.shimmer:where([dir="rtl"], [dir="rtl"] *) { animation-direction: reverse; }
+.shimmer-once { animation-iteration-count: 1; }
+.shimmer-reverse { animation-direction: reverse; }
+.shimmer-none { --shimmer-image: none; --shimmer-text-fill: currentColor; }
+@media (prefers-reduced-motion: reduce) {
+  .shimmer { animation: none; background-image: none; -webkit-text-fill-color: currentColor; }
+}
+
+/* ---------------------------------------------------------------- motion-*
+   An element that comes in as it scrolls into view: faded, risen, grown,
+   slid or sharpened. Driven by the scroll itself (animation-timeline: view()),
+   so a page drawn on the server needs no script; where a browser cannot, the
+   element is simply there. Nothing moves for a reader who asked for less. */
+@keyframes sl-motion-fade { from { opacity: 0; } }
+@keyframes sl-motion-up { from { opacity: 0; translate: 0 2rem; } }
+@keyframes sl-motion-scale { from { opacity: 0; scale: .92; } }
+@keyframes sl-motion-left { from { opacity: 0; translate: -2rem 0; } }
+@keyframes sl-motion-right { from { opacity: 0; translate: 2rem 0; } }
+@keyframes sl-motion-blur { from { opacity: 0; filter: blur(8px); } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    :is(.motion-fade-in, .motion-fade-up, .motion-scale-in, .motion-slide-left, .motion-slide-right, .motion-blur-in) {
+      animation: var(--motion-name) ease-out both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
+    .motion-fade-in { --motion-name: sl-motion-fade; }
+    .motion-fade-up { --motion-name: sl-motion-up; }
+    .motion-scale-in { --motion-name: sl-motion-scale; }
+    .motion-slide-left { --motion-name: sl-motion-left; }
+    .motion-slide-right { --motion-name: sl-motion-right; }
+    .motion-blur-in { --motion-name: sl-motion-blur; }
+  }
+}
+}
