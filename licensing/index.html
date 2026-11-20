@@ -11,20 +11,20 @@
 <meta property="og:description" content="OoidOS is being prepared for an open-source release, and its licence is being chosen.">
 <meta property="og:url" content="https://ooidget.org/os/licensing">
 <meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#17140f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#14110d" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="/favicon.svg?v=209nauxifp" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..700,50&family=Instrument+Sans:wght@400..700&display=swap">
 <link rel="stylesheet" href="/_/tw.css">
 <link rel="stylesheet" href="/_/theme.css">
-<link rel="stylesheet" href="/site.css?v=2hdj4iqigt">
+<link rel="stylesheet" href="/site.css?v=3b9hxxyczi">
 <script>
-  // Dark first: dark unless the reader chose light (the header's button); set before the first paint. The key is
-  // ooidget.org's: the two sites share an origin, so a choice made on one holds on the other.
+  // The reader's system decides light or dark until they choose with the header's button; the choice is set before
+  // the first paint. The key is ooidget.org's: the two sites share an origin, so a choice made on one holds on the other.
   let chosen = null;
   try { chosen = localStorage.getItem("ooidget.theme"); } catch {}
-  document.documentElement.dataset.theme = chosen === "light" ? "light" : "dark";
+  if (chosen === "light" || chosen === "dark") document.documentElement.dataset.theme = chosen;
   document.addEventListener("click", (e) => {
     const button = e.target.closest?.(".theme-toggle");
     if (!button) return;
@@ -107,7 +107,7 @@
         </button>
       </nav>
     </div>
-    <p class="alpha-strip m-0 px-4 py-1.5 text-center text-[13px]">OoidOS is in alpha: great for exploring, not ready for your daily work yet. <a href="/docs/installing">Back up before you install</a></p>
+    <p class="alpha-strip"><span class="container block">OoidOS is in alpha. <a href="/docs/installing">Back up before you install.</a></span></p>
   </header>
   <main id="main" tabindex="-1" class="outline-none"><div class="container">
 <header class="page-head"><span class="eyebrow">Open source</span><h1 class="section-title">Licensing</h1><p class="section-intro">OoidOS is being prepared for an open-source release, and its licence is being chosen now.</p></header>
@@ -139,7 +139,6 @@ package, offered only to computers that need it, so OoidOS itself stays free sof
       <div class="footer-grid">
         <div class="footer-brand">
           <a href="/" class="brand-mark"><img src="/assets/ooidget.svg?v=209nauxifp" alt="" width="24" height="24">OoidOS</a>
-          <p>A calm, tidy desktop that's yours to control.</p>
         </div>
         <nav class="footer-col" aria-label="Product"><h2>Product</h2><ul><li><a href="/#features" >Features</a></li><li><a href="/screenshots" >Screenshots</a></li><li><a href="/docs/roadmap" >Roadmap</a></li></ul></nav><nav class="footer-col" aria-label="Docs"><h2>Docs</h2><ul><li><a href="/docs/requirements" >Getting started</a></li><li><a href="/docs/files" >Using OoidOS</a></li><li><a href="/docs/build-the-image" >For developers</a></li></ul></nav><nav class="footer-col" aria-label="Project"><h2>Project</h2><ul><li><a href="/philosophy" >Philosophy</a></li><li><a href="/licensing" >Licensing</a></li><li><a href="https://ooidget.org/" rel="external">Ooidget</a></li></ul></nav>
       </div>

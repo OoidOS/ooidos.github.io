@@ -11,20 +11,20 @@
 <meta property="og:description" content="What OoidOS stands for.">
 <meta property="og:url" content="https://ooidget.org/os/philosophy">
 <meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#17140f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#14110d" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="/favicon.svg?v=209nauxifp" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..700,50&family=Instrument+Sans:wght@400..700&display=swap">
 <link rel="stylesheet" href="/_/tw.css">
 <link rel="stylesheet" href="/_/theme.css">
-<link rel="stylesheet" href="/site.css?v=2hdj4iqigt">
+<link rel="stylesheet" href="/site.css?v=3b9hxxyczi">
 <script>
-  // Dark first: dark unless the reader chose light (the header's button); set before the first paint. The key is
-  // ooidget.org's: the two sites share an origin, so a choice made on one holds on the other.
+  // The reader's system decides light or dark until they choose with the header's button; the choice is set before
+  // the first paint. The key is ooidget.org's: the two sites share an origin, so a choice made on one holds on the other.
   let chosen = null;
   try { chosen = localStorage.getItem("ooidget.theme"); } catch {}
-  document.documentElement.dataset.theme = chosen === "light" ? "light" : "dark";
+  if (chosen === "light" || chosen === "dark") document.documentElement.dataset.theme = chosen;
   document.addEventListener("click", (e) => {
     const button = e.target.closest?.(".theme-toggle");
     if (!button) return;
@@ -107,7 +107,7 @@
         </button>
       </nav>
     </div>
-    <p class="alpha-strip m-0 px-4 py-1.5 text-center text-[13px]">OoidOS is in alpha: great for exploring, not ready for your daily work yet. <a href="/docs/installing">Back up before you install</a></p>
+    <p class="alpha-strip"><span class="container block">OoidOS is in alpha. <a href="/docs/installing">Back up before you install.</a></span></p>
   </header>
   <main id="main" tabindex="-1" class="outline-none"><div class="container">
 <header class="page-head"><span class="eyebrow">Philosophy</span><h1 class="section-title">What OoidOS stands for</h1><p class="section-intro">A computer should feel calm. Apps should be easy to add and easy to remove. Your windows should be where you left them, your files should be safe, and nothing should leave your computer unless you sent it.</p></header>
@@ -116,12 +116,11 @@
 <h2 id="apps-you-can-hold">Apps you can hold</h2>
 <p>An app is a single item. Drag it into Applications to install it. Drag it to the Bin to remove it, and everything it
 installed goes with it. Apps come as a single <code>.ooid</code> file.</p>
-<p>The tools you use every day have clear names: <strong>Panorama</strong> shows all your windows, <strong>Toss</strong> sends files to devices
+<p><strong>Panorama</strong> shows all your windows, <strong>Toss</strong> sends files to devices
 nearby, <strong>Rewind</strong> keeps your backups, <strong>Gatehouse</strong> is the firewall, and <strong>Scribe</strong> is for writing.</p>
 <h2 id="everything-looks-like-it-belongs-together">Everything looks like it belongs together</h2>
-<p>The window frames, the menu bar, the Dock, the notifications and every app look and work the same way, so there’s less
-to learn. A <strong>look</strong> changes all of them at once. OoidOS’s own look is warm and earthy, Cupertino is cooler and
-crisper, and more looks are on the way.</p>
+<p>Cupertino, Redmond, Coyoacán and Tübingen give windows and app controls different layouts. Each look has its own colours, and
+you can use the earthy OoidOS theme with any of them.</p>
 <h2 id="updates-you-can-trust">Updates you can trust</h2>
 <p>An update goes in next to the system you’re using, never over it. If the new version doesn’t start properly, your
 computer goes back to the one that worked. And if something does go wrong, <strong>Recovery</strong> is always there to repair or
@@ -131,18 +130,11 @@ reinstall OoidOS.</p>
 look, light and dark, and can be used with the keyboard alone. <strong>Settings › Accessibility</strong> brings together Zoom,
 Increase contrast, Reduce motion, larger text and much more.</p>
 <h2 id="any-computer">Any computer</h2>
-<p>OoidOS is made for all kinds of PCs and laptops. It works with whatever hardware it finds, so there’s no list of models
-to check. Today it runs on 64-bit Intel and AMD processors, with ARM on the <a href="/docs/roadmap">roadmap</a>.</p>
+<p>OoidOS runs on PCs and laptops with 64-bit Intel and AMD processors. See <a href="/docs/requirements">Requirements</a> before you try it.</p>
 <h2 id="private-by-default">Private by default</h2>
 <p>OoidOS sends nothing about you anywhere: no tracking, no account, not even in the Store. Gatehouse blocks connections
 nobody asked for. It can show you every connection your apps make, and ask you before a new one. Sharing your screen,
 your files or a terminal stays off until you turn it on.</p>
-<h2 id="every-piece-accounted-for">Every piece accounted for</h2>
-<p>OoidOS is built from source code by its own build tool. Every source is pinned to an exact checksum, so each build uses
-exactly what the last one did, and you can always tell where any part of the system came from. Curious? You can
-<a href="/docs/build-the-image">build it yourself</a>.</p>
-<h2 id="straight-with-you">Straight with you</h2>
-<p>OoidOS is in alpha. We say what works and what’s coming, and we keep the <a href="/docs/roadmap">roadmap</a> up to date.</p>
 </div>
 </div>
 </main>
@@ -151,7 +143,6 @@ exactly what the last one did, and you can always tell where any part of the sys
       <div class="footer-grid">
         <div class="footer-brand">
           <a href="/" class="brand-mark"><img src="/assets/ooidget.svg?v=209nauxifp" alt="" width="24" height="24">OoidOS</a>
-          <p>A calm, tidy desktop that's yours to control.</p>
         </div>
         <nav class="footer-col" aria-label="Product"><h2>Product</h2><ul><li><a href="/#features" >Features</a></li><li><a href="/screenshots" >Screenshots</a></li><li><a href="/docs/roadmap" >Roadmap</a></li></ul></nav><nav class="footer-col" aria-label="Docs"><h2>Docs</h2><ul><li><a href="/docs/requirements" >Getting started</a></li><li><a href="/docs/files" >Using OoidOS</a></li><li><a href="/docs/build-the-image" >For developers</a></li></ul></nav><nav class="footer-col" aria-label="Project"><h2>Project</h2><ul><li><a href="/philosophy" >Philosophy</a></li><li><a href="/licensing" >Licensing</a></li><li><a href="https://ooidget.org/" rel="external">Ooidget</a></li></ul></nav>
       </div>
